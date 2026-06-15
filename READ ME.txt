@@ -1,0 +1,27 @@
+FULFORD COMPETITION HELPER
+==========================
+Licensed to Fulford Golf Club — not for distribution.
+
+HOW TO INSTALL
+--------------
+1. Extract this ZIP folder to your Desktop
+   (Right-click the ZIP → "Extract All" → choose Desktop → Extract)
+
+2. Open the "Fulford Competition Helper" folder on your Desktop
+
+3. Double-click "Prize_Fund_Calc_V13.html" to open the app in your browser
+
+TIP: Right-click "Prize_Fund_Calc_V13.html" → Send to → Desktop (create shortcut)
+     to add a quick-launch shortcut to your Desktop.
+
+DEMO DATA
+---------
+The "demo-data" folder contains sample medal.csv and stableford.csv files
+you can use to try out the import feature.
+
+SUPPORT
+-------
+Contact your competition committee secretary for assistance.
+
+---
+Fulford Competition Helper V13  |  Fulford Golf Club  |  2026
