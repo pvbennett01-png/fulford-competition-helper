@@ -1,0 +1,11 @@
+﻿{
+  "name": "fulford-competition-helper",
+  "version": "1.3.0",
+  "description": "Fulford Golf Club Competition Helper",
+  "scripts": {
+    "tauri": "tauri"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2"
+  }
+}

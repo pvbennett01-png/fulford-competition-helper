@@ -1,0 +1,1686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Fulford GC — Prize Calculator V13</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f0f4f1;
+      --panel-bg: #ffffff;
+      --accent: #134325;
+      --accent-mid: #1e6b3a;
+      --accent-soft: #e4ede6;
+      --border: #c8d5ca;
+      --text-main: #1a2e1d;
+      --text-muted: #5a6e5c;
+      --danger: #c0392b;
+      --success: #134325;
+      --warning: #9a6700;
+      --radius: 10px;
+      --shadow-soft: 0 2px 8px rgba(19,67,37,0.08);
+      --shadow-card: 0 4px 16px rgba(19,67,37,0.10);
+      --font-main: 'Inter', system-ui, sans-serif;
+      --font-heading: 'Playfair Display', Georgia, serif;
+      --mono: "SF Mono", Menlo, Monaco, Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: var(--font-main);
+      background: var(--bg);
+      color: var(--text-main);
+    }
+
+    /* ── APP SHELL ── */
+    .app-shell {
+      max-width: 1200px;
+      margin: 0 auto 40px;
+      padding: 0 16px;
+    }
+
+    /* ── HEADER BAND ── */
+    header {
+      background: var(--accent);
+      margin: 0 -16px 0;
+      padding: 14px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    }
+
+    header h1 {
+      font-family: var(--font-heading);
+      font-size: 22px;
+      margin: 0;
+      color: #fff;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+
+    header .version {
+      font-size: 12px;
+      color: rgba(255,255,255,0.6);
+    }
+
+    /* ── TABS ── */
+    .tabs {
+      display: flex;
+      gap: 2px;
+      flex-wrap: wrap;
+      margin: 16px 0 0;
+      border-bottom: 3px solid var(--accent);
+    }
+
+    .tab {
+      padding: 9px 18px;
+      font-size: 13px;
+      font-weight: 500;
+      border: none;
+      border-radius: 8px 8px 0 0;
+      cursor: pointer;
+      color: var(--text-muted);
+      background: #e4ede6;
+      transition: background 0.15s, color 0.15s;
+      font-family: var(--font-main);
+    }
+
+    .tab:hover {
+      background: #cddbd0;
+      color: var(--text-main);
+    }
+
+    .tab.active {
+      background: var(--accent);
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .tab span.step {
+      font-weight: 700;
+      margin-right: 5px;
+      opacity: 0.75;
+    }
+
+    /* ── PANELS ── */
+    .tab-panel {
+      display: none;
+      background: var(--panel-bg);
+      border-radius: 0 0 var(--radius) var(--radius);
+      border: 1px solid var(--border);
+      border-top: none;
+      box-shadow: var(--shadow-card);
+      padding: 20px 22px 24px;
+    }
+
+    .tab-panel.active { display: block; }
+
+    h2 {
+      font-family: var(--font-heading);
+      font-size: 20px;
+      font-weight: 700;
+      margin: 0 0 14px;
+      color: var(--accent);
+      letter-spacing: 0.2px;
+    }
+
+    h3 {
+      font-size: 14px;
+      font-weight: 600;
+      margin: 16px 0 8px;
+      color: var(--text-main);
+    }
+
+    label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+      display: block;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    input[type="text"],
+    input[type="date"],
+    input[type="number"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 7px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      font-size: 13px;
+      font-family: var(--font-main);
+      background: #fff;
+      color: var(--text-main);
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(19,67,37,0.12);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    button {
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: #f0f4f1;
+      padding: 6px 12px;
+      font-size: 13px;
+      font-family: var(--font-main);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: background 0.12s, border-color 0.12s;
+    }
+
+    button:hover { background: #dce8df; }
+
+    button.primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+      font-weight: 600;
+    }
+
+    button.primary:hover { background: var(--accent-mid); }
+
+    button.ghost  { background: transparent; }
+    button.small  { padding: 4px 8px; font-size: 12px; }
+
+    button.danger {
+      border-color: var(--danger);
+      color: var(--danger);
+      background: #fdf2f2;
+    }
+
+    button.success {
+      border-color: var(--success);
+      color: var(--success);
+      background: #f0f7f2;
+    }
+
+    button.warning {
+      border-color: var(--warning);
+      color: var(--warning);
+      background: #fdf8ee;
+    }
+
+    /* ── IMPORT ── */
+    .import-panels {
+      display: flex;
+      flex-direction: row;
+      gap: 16px;
+      align-items: flex-start;
+      margin-top: 4px;
+      flex-wrap: nowrap;
+    }
+
+    .import-panel {
+      flex: 1;
+      min-width: 420px;
+      background: var(--panel-bg);
+      padding: 14px 14px 16px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .import-panel h3 {
+      margin-top: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .drop-zone {
+      position: relative;
+      border: 2px dashed var(--border);
+      padding: 18px 10px;
+      text-align: center;
+      border-radius: 8px;
+      background: var(--accent-soft);
+      cursor: pointer;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      transition: border-color 0.15s, background 0.15s;
+      overflow: hidden;
+    }
+
+    /* Native file input covers the entire drop zone — works on all browsers/hosts */
+    .drop-zone input[type="file"] {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+      font-size: 0;
+    }
+
+    .drop-zone::before {
+      content: "⬆ ";
+      font-size: 16px;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .drop-zone:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .drop-zone.dragover {
+      border-color: var(--accent);
+      background: #c8dcc9;
+      color: var(--accent);
+    }
+
+    .import-panel textarea {
+      font-family: var(--mono);
+      font-size: 12px;
+    }
+
+    .import-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 8px;
+      gap: 8px;
+      flex-wrap: nowrap;
+    }
+
+    .toggle-mode-btn {
+      margin-left: auto;
+      padding: 3px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      border: 1.5px solid var(--accent);
+      border-radius: 20px;
+      background: transparent;
+      color: var(--accent);
+      cursor: pointer;
+      font-family: var(--font-main);
+      transition: background 0.15s, color 0.15s;
+      white-space: nowrap;
+    }
+    .toggle-mode-btn:hover,
+    .toggle-mode-btn.active {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .import-actions input[type="file"] {
+      font-size: 11px;
+      min-width: 0;
+      flex-shrink: 1;
+    }
+
+    /* ── STATUS & HINTS ── */
+    .hint {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      border: 1px solid var(--border);
+      background: #eef2ef;
+      color: var(--text-muted);
+    }
+
+    .status-pill.ok  { border-color: #2e7d52; color: #fff; background: #2e7d52; }
+    .status-pill.warn{ border-color: var(--warning); color: var(--warning); background: #fdf8ee; }
+    .status-pill.err { border-color: var(--danger); color: #fff; background: var(--danger); }
+
+    /* ── CONFIGURE ── */
+    .config-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-top: 8px;
+    }
+
+    .config-card {
+      background: #f8faf8;
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-top: 3px solid var(--accent);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .config-card h3 {
+      margin-top: 0;
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--accent);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .field-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+
+    .field-row > div { flex: 1; min-width: 80px; }
+
+    .toggle-group {
+      display: inline-flex;
+      border-radius: 999px;
+      border: 2px solid var(--accent);
+      overflow: hidden;
+    }
+
+    .toggle-group button {
+      border-radius: 0;
+      border: none;
+      padding: 4px 12px;
+      font-size: 12px;
+      font-weight: 500;
+      background: transparent;
+      color: var(--accent);
+    }
+
+    .toggle-group button.active {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    /* ── TABLES ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    th {
+      font-weight: 700;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: #fff;
+      background: var(--accent);
+      padding: 6px 8px;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 5px 8px;
+      border-bottom: 1px solid #e4ede6;
+      text-align: left;
+    }
+
+    tbody tr:nth-child(even) td { background: #f4f8f5; }
+    tbody tr:hover td { background: #e4ede6; }
+
+    td.mono { font-family: var(--mono); text-align: right; }
+
+    /* ── AUDIT ROWS ── */
+    .audit-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      margin-bottom: 3px;
+    }
+
+    .audit-row span.label { color: var(--text-muted); }
+    .audit-row span.value { font-family: var(--mono); font-weight: 600; }
+
+    /* ── PREVIEW ── */
+    .preview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      margin-top: 10px;
+    }
+
+    .preview-card {
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: #fff;
+      padding: 10px 12px;
+      box-shadow: var(--shadow-soft);
+      overflow: hidden;
+    }
+
+    .preview-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 6px;
+      padding-bottom: 6px;
+      border-bottom: 2px solid var(--accent);
+    }
+
+    .preview-card-header h4 {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .preview-card-header span.count {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    /* ── RESULTS ── */
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-top: 10px;
+    }
+
+    .results-card {
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      background: #fff;
+      padding: 10px 12px 12px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .results-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .results-header h3 {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .results-buttons { display: inline-flex; gap: 4px; }
+    .results-buttons button { font-size: 11px; padding: 3px 7px; }
+
+    .tie-toggle {
+      margin-bottom: 8px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tie-label { color: var(--text-muted); font-weight: 500; }
+
+    .tie-group {
+      display: inline-flex;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .tie-group button {
+      border: none;
+      background: transparent;
+      padding: 3px 10px;
+      font-size: 11px;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .tie-group button.active { background: var(--accent); color: #fff; }
+
+    /* ── MANUAL ── */
+    .manual-note {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      padding: 8px 12px;
+      background: var(--accent-soft);
+      border-left: 3px solid var(--accent);
+      border-radius: 4px;
+    }
+
+    .manual-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-top: 8px;
+    }
+
+    .manual-card {
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      border-top: 3px solid var(--accent);
+      background: #fff;
+      padding: 10px 12px 12px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .manual-card h3 {
+      margin: 0 0 6px; font-size: 14px; color: var(--accent);
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 6px;
+    }
+    .manual-fund-row { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+    .manual-fund-box, .manual-total-box {
+      font-size: 11px; font-weight: 600;
+      padding: 3px 8px; border-radius: 4px;
+      border: 1px solid var(--border); background: var(--accent-soft);
+      color: var(--text-main); white-space: nowrap;
+    }
+
+    .manual-footer {
+      margin-top: 8px;
+      font-size: 11px;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    /* ── EXPORT BUTTONS ── */
+    .export-btn {
+      width: 100%;
+      padding: 11px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      font-family: var(--font-main);
+      text-align: left;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #f8faf8;
+      cursor: pointer;
+      transition: background 0.12s, transform 0.1s;
+    }
+
+    .export-btn.primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+      font-weight: 600;
+    }
+
+    .export-btn:hover { background: #dce8df; transform: translateY(-1px); box-shadow: var(--shadow-soft); }
+    .export-btn.primary:hover { background: var(--accent-mid); }
+
+    /* ── UTILITY ── */
+    .right { text-align: right; }
+    .mt-4  { margin-top: 4px; }
+    .mt-8  { margin-top: 8px; }
+    .mt-12 { margin-top: 12px; }
+
+    /* ── RESPONSIVE ── */
+    .results-card, .manual-card, .preview-card { overflow-x: auto; }
+
+    @media (max-width: 640px) {
+      .results-grid, .manual-grid { grid-template-columns: 1fr; }
+      .audit-strip { grid-template-columns: repeat(2, 1fr) !important; }
+    }
+
+    @media (max-width: 720px) {
+      .import-panels { flex-wrap: wrap; }
+      .import-panel  { min-width: 0; }
+    }
+
+    @media (max-width: 560px) {
+      header img    { height: 60px !important; }
+      header h1     { font-size: 16px; }
+      .audit-strip  { grid-template-columns: 1fr !important; }
+    }
+
+    @media (max-width: 480px) {
+      .export-grid  { grid-template-columns: 1fr !important; }
+    }
+
+    /* ── HELP BUTTON ── */
+    #btn-help {
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.35);
+      color: #fff;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.15s;
+    }
+    #btn-help:hover { background: rgba(255,255,255,0.28); }
+
+    /* ── GUIDE MODAL ── */
+    #guide-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(10,30,15,0.55);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    #guide-overlay.visible { display: flex; }
+
+    #guide-modal {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.28);
+      width: 100%;
+      max-width: 720px;
+      max-height: 88vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    #guide-modal-body {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    /* Prompt screen */
+    .guide-prompt {
+      padding: 40px 32px 32px;
+      text-align: center;
+    }
+    .guide-prompt-icon {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fff;
+      font-size: 28px;
+      font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 16px;
+    }
+    .guide-prompt-title {
+      font-family: var(--font-heading);
+      font-size: 22px;
+      color: var(--accent);
+      margin: 0 0 8px;
+    }
+    .guide-prompt-sub {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin: 0 0 24px;
+    }
+    .guide-prompt-btns {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .guide-btn-yes {
+      padding: 9px 24px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: #f0f4f1;
+      color: var(--text-main);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: var(--font-main);
+      transition: background 0.12s;
+    }
+    .guide-btn-yes:hover { background: #dce8df; }
+    .guide-btn-no {
+      padding: 9px 24px;
+      border-radius: 6px;
+      border: 1px solid var(--accent);
+      background: var(--accent);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: var(--font-main);
+      transition: background 0.12s;
+    }
+    .guide-btn-no:hover { background: var(--accent-mid); }
+    .guide-dont-show {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-muted);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    /* Guide content screen */
+    .guide-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px 12px;
+      border-bottom: 2px solid var(--accent);
+      flex-shrink: 0;
+    }
+    .guide-title {
+      font-family: var(--font-heading);
+      font-size: 18px;
+      color: var(--accent);
+      margin: 0;
+    }
+    .guide-close-btn {
+      background: none;
+      border: none;
+      font-size: 18px;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 4px;
+      line-height: 1;
+    }
+    .guide-close-btn:hover { background: #f0f4f1; color: var(--text-main); }
+    .guide-content {
+      overflow-y: auto;
+      padding: 16px 24px;
+      flex: 1;
+      min-height: 0;
+    }
+    .guide-footer {
+      padding: 12px 20px;
+      border-top: 1px solid var(--border);
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    /* Guide typography */
+    .guide-h1 { font-family: var(--font-heading); font-size: 20px; color: var(--accent); margin: 0 0 4px; }
+    .guide-h2 { font-family: var(--font-heading); font-size: 17px; color: var(--accent); margin: 20px 0 6px; border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+    .guide-h3 { font-size: 14px; font-weight: 700; color: var(--text-main); margin: 14px 0 6px; }
+    .guide-hr  { border: none; border-top: 1px solid var(--border); margin: 12px 0; }
+    .guide-p   { font-size: 13px; line-height: 1.6; margin: 0 0 10px; color: var(--text-main); }
+    .guide-ul  { font-size: 13px; line-height: 1.7; margin: 0 0 10px; padding-left: 20px; color: var(--text-main); }
+    .guide-table { width: 100%; border-collapse: collapse; font-size: 12px; margin: 8px 0 14px; }
+    .guide-table td { padding: 5px 10px; border: 1px solid var(--border); }
+    .guide-table tr:first-child td { background: var(--accent); color: #fff; font-weight: 600; }
+    .guide-table tr:nth-child(even) td { background: #f4f8f5; }
+
+    @media print {
+      .tabs,
+      .print-bar,
+      .results-buttons,
+      .lock-btn,
+      .tie-toggle,
+      .manual-lock-btn,
+      button {
+        display: none !important;
+      }
+
+      #print-header {
+        display: block !important;
+      }
+
+      /* Show only the results tab panel when printing */
+      .tab-panel {
+        display: none !important;
+      }
+
+      #tab-results {
+        display: block !important;
+        border: none;
+        box-shadow: none;
+      }
+
+      body { background: #fff; }
+      .app-shell { margin: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- LICENCE SPLASH -->
+<div id="licence-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:9999;display:flex;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:12px;max-width:440px;width:90%;padding:36px 32px;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,0.4);">
+    <img src="Logo.png" alt="Fulford GC" style="height:64px;margin-bottom:16px;display:block;margin-left:auto;margin-right:auto;" onerror="this.style.display='none'">
+    <h2 style="margin:0 0 8px;font-family:'Playfair Display',Georgia,serif;color:#134325;font-size:20px;">Fulford Competition Helper</h2>
+    <p style="margin:0 0 4px;font-size:13px;color:#5a6e5c;">Version 13 &nbsp;|&nbsp; Fulford Golf Club</p>
+    <hr style="border:none;border-top:1px solid #c8d5ca;margin:18px 0;">
+    <p style="margin:0 0 16px;font-size:14px;line-height:1.6;color:#1a2e1d;">
+      This software is <strong>licensed exclusively to Fulford Golf Club</strong>.<br>
+      It is provided free of charge for internal club use only.<br><br>
+      <strong>Not for redistribution, resale, or sharing outside the club.</strong>
+    </p>
+    <button onclick="document.getElementById('licence-overlay').remove()"
+      style="background:#134325;color:#fff;border:none;border-radius:8px;padding:12px 32px;font-size:15px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;">
+      I Agree — Open App
+    </button>
+  </div>
+</div>
+
+  <div class="app-shell">
+    <header>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <img src="Logo.png" alt="Fulford Golf Club" style="height:110px;width:auto;">
+        <h1 style="margin:0;">Fulford Golf Club — Prize Calculator</h1>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="version">V13 (HTML/JS)</div>
+        <button id="btn-help" title="User guide">?</button>
+      </div>
+    </header>
+
+    <!-- Shown only in print mode / @media print -->
+    <div id="print-header" style="display:none; margin-bottom:16px;">
+      <h2 id="print-comp-name" style="margin:0;font-size:20px;"></h2>
+      <p id="print-comp-date" style="margin:4px 0 0;color:#57606a;font-size:14px;"></p>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="import"><span class="step">1.</span>IMPORT</button>
+      <button class="tab" data-tab="configure"><span class="step">2.</span>CONFIGURE</button>
+      <button class="tab" data-tab="results"><span class="step">3.</span>RESULTS</button>
+      <button class="tab" data-tab="manual"><span class="step">4.</span>MANUAL</button>
+      <button class="tab" data-tab="export"><span class="step">5.</span>EXPORT</button>
+    </div>
+
+   <!-- IMPORT TAB -->
+<section class="tab-panel active" id="tab-import">
+  <h2>Import competition data</h2>
+  <p class="hint">
+    Stableford and Medal CSV inputs are side by side. Paste, drag & drop, or choose a file.
+  </p>
+
+  <div class="import-panels">
+
+    <!-- Stableford -->
+    <div class="import-panel" id="panel-stableford">
+      <h3>
+        Stableford CSV
+        <span id="status-stableford" class="status-pill">Waiting for input</span>
+      </h3>
+
+      <div class="drop-zone" data-type="stableford">
+        ☁ Drop CSV here or click to browse
+        <input type="file" id="file-stableford" accept=".csv,text/csv" />
+      </div>
+
+      <textarea id="txt-stableford" placeholder="Paste Stableford CSV here..."></textarea>
+
+      <div class="import-actions">
+        <button type="button" class="primary small" id="btn-parse-stableford">
+          Parse Stableford
+        </button>
+      </div>
+
+      <div class="mt-4 hint" id="hint-stableford">No Stableford data loaded.</div>
+    </div>
+
+    <!-- Medal (toggle between division headers and single division) -->
+    <div class="import-panel" id="panel-medal">
+      <h3>
+        Medal CSV <span id="medal-mode-label">(with Division headers)</span>
+        <span id="status-medal" class="status-pill">Waiting for input</span>
+        <button type="button" class="toggle-mode-btn" id="btn-medal-mode">Single Division</button>
+      </h3>
+
+      <!-- Division headers content (default) -->
+      <div id="medal-div-content">
+        <div class="drop-zone" data-type="medal">
+          ☁ Drop CSV here or click to browse
+          <input type="file" id="file-medal" accept=".csv,text/csv" />
+        </div>
+
+        <textarea id="txt-medal" placeholder="Paste Medal CSV here..."></textarea>
+
+        <div class="import-actions">
+          <button type="button" class="primary small" id="btn-parse-medal">
+            Parse Medal (Division headers)
+          </button>
+        </div>
+
+        <div class="mt-4 hint" id="hint-medal">No Medal data loaded.</div>
+      </div>
+
+      <!-- Single division content (hidden until toggled) -->
+      <div id="medal-single-content" style="display:none">
+        <div class="drop-zone" data-type="medal-single">
+          ☁ Drop CSV here or click to browse
+          <input type="file" id="file-medal-single" accept=".csv,text/csv" />
+        </div>
+
+        <textarea id="txt-medal-single" placeholder="Paste single-division Medal CSV here..."></textarea>
+
+        <div class="import-actions">
+          <button type="button" class="primary small" id="btn-parse-medal-single">
+            Parse Medal (single division)
+          </button>
+        </div>
+
+        <div class="mt-4 hint" id="hint-medal-single">No single-division Medal data loaded.</div>
+        <span id="status-medal-single" class="status-pill" style="display:none">Waiting for input</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Two's row -->
+  <h3 class="mt-12" style="font-size:14px;color:var(--text-muted);margin-bottom:8px;">Two's competitions</h3>
+  <div class="import-panels">
+
+    <!-- Two's Stableford -->
+    <div class="import-panel" id="panel-twos-stableford">
+      <h3>
+        Two's Stableford CSV
+        <span id="status-twos-stableford" class="status-pill">Waiting for input</span>
+      </h3>
+
+      <div class="drop-zone" data-type="twos-stableford">
+        ☁ Drop CSV here or click to browse
+        <input type="file" id="file-twos-stableford" accept=".csv,text/csv" />
+      </div>
+
+      <textarea id="txt-twos-stableford" placeholder="Paste Two's Stableford CSV here..."></textarea>
+
+      <div class="import-actions">
+        <button type="button" class="primary small" id="btn-parse-twos-stableford">
+          Parse Two's Stableford
+        </button>
+      </div>
+
+      <div class="mt-4 hint" id="hint-twos-stableford">No Two's Stableford data loaded.</div>
+    </div>
+
+    <!-- Two's Medal -->
+    <div class="import-panel" id="panel-twos-medal">
+      <h3>
+        Two's Medal CSV
+        <span id="status-twos-medal" class="status-pill">Waiting for input</span>
+      </h3>
+
+      <div class="drop-zone" data-type="twos-medal">
+        ☁ Drop CSV here or click to browse
+        <input type="file" id="file-twos-medal" accept=".csv,text/csv" />
+      </div>
+
+      <textarea id="txt-twos-medal" placeholder="Paste Two's Medal CSV here..."></textarea>
+
+      <div class="import-actions">
+        <button type="button" class="primary small" id="btn-parse-twos-medal">
+          Parse Two's Medal
+        </button>
+      </div>
+
+      <div class="mt-4 hint" id="hint-twos-medal">No Two's Medal data loaded.</div>
+    </div>
+
+  </div>
+
+  <div class="mt-12 right">
+    <button type="button" class="primary" id="btn-import-next">
+      Next: Configure ▸
+    </button>
+  </div>
+</section>
+
+    <!-- CONFIGURE TAB -->
+    <section class="tab-panel" id="tab-configure">
+      <h2>Configure competition &amp; prize fund</h2>
+
+      <div class="config-grid">
+        <!-- Competition details -->
+        <div class="config-card">
+          <h3>Competition details</h3>
+          <div class="field-row">
+            <div>
+              <label for="comp-name">Competition name</label>
+              <input type="text" id="comp-name" placeholder="e.g. Saturday Stableford" />
+            </div>
+          </div>
+          <div class="field-row">
+            <div>
+              <label for="comp-date">Competition date</label>
+              <input type="date" id="comp-date" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Division boundaries -->
+        <div class="config-card">
+          <h3>
+            Division boundaries
+            <button class="small" id="btn-parse-divisions">Parse divisions</button>
+          </h3>
+          <div class="field-row" style="margin-bottom:8px;">
+            <div>
+              <label>Medal prize divisions</label>
+              <div class="toggle-group" id="divisions-count-toggle">
+                <button type="button" data-value="1">1</button>
+                <button type="button" data-value="2">2</button>
+                <button type="button" data-value="3" class="active">3</button>
+              </div>
+            </div>
+          </div>
+          <div class="field-row">
+            <div>
+              <label>Div 1 min</label>
+              <input type="number" id="d1-min" value="-5" />
+            </div>
+            <div>
+              <label>Div 1 max</label>
+              <input type="number" id="d1-max" value="8" />
+            </div>
+          </div>
+          <div class="field-row" id="div2-bounds-row">
+            <div>
+              <label>Div 2 min</label>
+              <input type="number" id="d2-min" value="9" />
+            </div>
+            <div>
+              <label>Div 2 max</label>
+              <input type="number" id="d2-max" value="14" />
+            </div>
+          </div>
+          <div class="field-row" id="div3-bounds-row">
+            <div>
+              <label>Div 3 min</label>
+              <input type="number" id="d3-min" value="15" />
+            </div>
+            <div>
+              <label>Div 3 max</label>
+              <input type="number" id="d3-max" value="54" />
+            </div>
+          </div>
+          <p class="hint mt-4">Defaults are editable. Clicking “Parse divisions” recalculates using the current boundaries.</p>
+        </div>
+
+        <!-- Entry fee & retention -->
+        <div class="config-card">
+          <h3>Entry fee &amp; retention</h3>
+          <div class="field-row">
+            <div>
+              <label for="entry-fee">Entry fee per player (£)</label>
+              <input type="number" id="entry-fee" value="4.00" step="0.01" />
+            </div>
+          </div>
+          <div class="field-row">
+            <div>
+              <label>Retention</label>
+              <div class="toggle-group" id="retention-toggle">
+                <button type="button" data-value="yes" class="active">Yes</button>
+                <button type="button" data-value="no">No</button>
+              </div>
+            </div>
+          </div>
+          <p class="hint mt-4">
+            Yes: 75% of entry fee per player available as prize fund (25% retained).<br />
+            No: 100% of entry fee available as prize fund.
+          </p>
+        </div>
+
+        <!-- Two's prize funds -->
+        <div class="config-card">
+          <h3>Two's prize funds</h3>
+          <div class="field-row">
+            <div>
+              <label for="twos-stb-fund">Two's Stableford fund (£)</label>
+              <input type="number" id="twos-stb-fund" value="0" step="0.01" min="0" />
+            </div>
+          </div>
+          <div class="field-row">
+            <div>
+              <label for="twos-med-fund">Two's Medal fund (£)</label>
+              <input type="number" id="twos-med-fund" value="0" step="0.01" min="0" />
+            </div>
+          </div>
+          <p class="hint mt-4">Fund ÷ total shares. Each "2" = 1 share, each "1" (hole-in-one) = 2 shares. Multiple twos on different holes earn multiple shares.</p>
+        </div>
+
+        <!-- Prize structure -->
+        <div class="config-card">
+          <h3>Prize limits</h3>
+          <div class="field-row">
+            <div>
+              <label for="max-prize">Max 1st prize (£)</label>
+              <input type="number" id="max-prize" value="30" step="0.01" />
+            </div>
+            <div>
+              <label for="min-prize">Min prize (£)</label>
+              <input type="number" id="min-prize" value="7" step="0.01" />
+            </div>
+          </div>
+          <p class="hint mt-4">The engine auto-calculates prize places to exhaust the fund between these limits. Prizes taper linearly from max down to min.</p>
+        </div>
+
+      </div>
+
+      <!-- Preview -->
+      <h3 class="mt-12">Preview — top 5 per division &amp; Stableford</h3>
+      <div class="preview-grid" id="preview-grid">
+        <div class="preview-card" data-block="div1">
+          <div class="preview-card-header">
+            <h4>Division 1</h4>
+            <span class="count" id="preview-div1-count">0 players</span>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Pos</th>
+                <th>Name</th>
+                <th>Hcp</th>
+                <th class="right">Score</th>
+              </tr>
+            </thead>
+            <tbody id="preview-div1-body">
+              <!-- Filled by JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <div class="preview-card" data-block="div2">
+          <div class="preview-card-header">
+            <h4>Division 2</h4>
+            <span class="count" id="preview-div2-count">0 players</span>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Pos</th>
+                <th>Name</th>
+                <th>Hcp</th>
+                <th class="right">Score</th>
+              </tr>
+            </thead>
+            <tbody id="preview-div2-body"></tbody>
+          </table>
+        </div>
+
+        <div class="preview-card" data-block="div3">
+          <div class="preview-card-header">
+            <h4>Division 3</h4>
+            <span class="count" id="preview-div3-count">0 players</span>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Pos</th>
+                <th>Name</th>
+                <th>Hcp</th>
+                <th class="right">Score</th>
+              </tr>
+            </thead>
+            <tbody id="preview-div3-body"></tbody>
+          </table>
+        </div>
+
+        <div class="preview-card" data-block="stableford">
+          <div class="preview-card-header">
+            <h4>Stableford (overall)</h4>
+            <span class="count" id="preview-stb-count">0 players</span>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Pos</th>
+                <th>Name</th>
+                <th>Hcp</th>
+                <th class="right">Pts</th>
+              </tr>
+            </thead>
+            <tbody id="preview-stb-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="mt-12 right">
+        <button class="primary" id="btn-config-next">Next: Results ▸</button>
+      </div>
+    </section>
+
+    <!-- RESULTS TAB -->
+    <section class="tab-panel" id="tab-results">
+      <h2>Results &amp; prize allocation</h2>
+
+      <p class="hint">Use REVERT / PRACTICAL / MANUAL per section. Use the Export tab to print.</p>
+
+      <!-- Per-section fund audit -->
+      <div class="audit-strip" id="audit-strip" style="
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+        gap:10px;
+        margin:12px 0 16px;
+      ">
+        <!-- Div 1 -->
+        <div class="audit-box" data-audit="div1" style="background:#f9fafb;border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;">
+          <div style="font-weight:600;font-size:13px;margin-bottom:6px;">Division 1</div>
+          <div class="audit-row"><span class="label">Players:</span><span class="value" id="ab-div1-players">0</span></div>
+          <div class="audit-row"><span class="label">Fund:</span><span class="value" id="ab-div1-fund">£0</span></div>
+          <div class="audit-row"><span class="label">Allocated:</span><span class="value" id="ab-div1-allocated">£0</span></div>
+          <div class="audit-row"><span class="label">Surplus:</span><span class="value" id="ab-div1-surplus">£0</span></div>
+        </div>
+        <!-- Div 2 -->
+        <div class="audit-box" data-audit="div2" style="background:#f9fafb;border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;">
+          <div style="font-weight:600;font-size:13px;margin-bottom:6px;">Division 2</div>
+          <div class="audit-row"><span class="label">Players:</span><span class="value" id="ab-div2-players">0</span></div>
+          <div class="audit-row"><span class="label">Fund:</span><span class="value" id="ab-div2-fund">£0</span></div>
+          <div class="audit-row"><span class="label">Allocated:</span><span class="value" id="ab-div2-allocated">£0</span></div>
+          <div class="audit-row"><span class="label">Surplus:</span><span class="value" id="ab-div2-surplus">£0</span></div>
+        </div>
+        <!-- Div 3 -->
+        <div class="audit-box" data-audit="div3" style="background:#f9fafb;border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;">
+          <div style="font-weight:600;font-size:13px;margin-bottom:6px;">Division 3</div>
+          <div class="audit-row"><span class="label">Players:</span><span class="value" id="ab-div3-players">0</span></div>
+          <div class="audit-row"><span class="label">Fund:</span><span class="value" id="ab-div3-fund">£0</span></div>
+          <div class="audit-row"><span class="label">Allocated:</span><span class="value" id="ab-div3-allocated">£0</span></div>
+          <div class="audit-row"><span class="label">Surplus:</span><span class="value" id="ab-div3-surplus">£0</span></div>
+        </div>
+        <!-- Stableford -->
+        <div class="audit-box" data-audit="stableford" style="background:#f9fafb;border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;">
+          <div style="font-weight:600;font-size:13px;margin-bottom:6px;">Stableford</div>
+          <div class="audit-row"><span class="label">Players:</span><span class="value" id="ab-stb-players">0</span></div>
+          <div class="audit-row"><span class="label">Fund:</span><span class="value" id="ab-stb-fund">£0</span></div>
+          <div class="audit-row"><span class="label">Allocated:</span><span class="value" id="ab-stb-allocated">£0</span></div>
+          <div class="audit-row"><span class="label">Surplus:</span><span class="value" id="ab-stb-surplus">£0</span></div>
+        </div>
+        <!-- Grand total -->
+        <div class="audit-box" style="background:#e2ecff;border:1px solid var(--accent);border-radius:var(--radius);padding:8px 12px;">
+          <div style="font-weight:600;font-size:13px;margin-bottom:6px;color:var(--accent);">Total</div>
+          <div class="audit-row"><span class="label">Players:</span><span class="value" id="ab-total-players">0</span></div>
+          <div class="audit-row"><span class="label">Fund:</span><span class="value" id="ab-total-fund">£0</span></div>
+          <div class="audit-row"><span class="label">Allocated:</span><span class="value" id="ab-total-allocated">£0</span></div>
+          <div class="audit-row"><span class="label">Surplus:</span><span class="value" id="ab-total-surplus">£0</span></div>
+        </div>
+      </div>
+
+      <div class="results-grid">
+        <!-- Div 1 -->
+        <div class="results-card" data-section="div1">
+          <div class="tie-toggle">
+  <span class="tie-label">Tie Handling:</span>
+  <div class="toggle-group tie-group" data-section="div1">
+    <button type="button" data-value="B" class="active">Duplicate (B)</button>
+    <button type="button" data-value="A">Average (A)</button>
+  </div>
+</div>
+
+          <div class="results-header">
+            <h3>Division 1</h3>
+            <div class="results-buttons">
+              <button class="small" data-action="revert">REVERT</button>
+              <button class="small" data-action="practical">SIMON'S</button>
+              <button class="small" data-action="manual">MANUAL</button>
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th style="width:30px">Pos</th>
+                <th>Name</th>
+                <th style="width:44px">Hcp</th>
+                <th class="right" style="width:52px">Score</th>
+                <th class="right" style="width:72px">Prize (£)</th>
+                <th style="width:44px"></th>
+              </tr>
+            </thead>
+            <tbody id="results-div1-body">
+              <!-- Engine output; manual mode will expand rows -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Div 2 -->
+        <div class="results-card" data-section="div2">
+          <div class="tie-toggle">
+  <span class="tie-label">Tie Handling:</span>
+  <div class="toggle-group tie-group" data-section="div2">
+    <button type="button" data-value="B" class="active">Duplicate (B)</button>
+    <button type="button" data-value="A">Average (A)</button>
+  </div>
+</div>
+
+          <div class="results-header">
+            <h3>Division 2</h3>
+            <div class="results-buttons">
+              <button class="small" data-action="revert">REVERT</button>
+              <button class="small" data-action="practical">SIMON'S</button>
+              <button class="small" data-action="manual">MANUAL</button>
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th style="width:30px">Pos</th>
+                <th>Name</th>
+                <th style="width:44px">Hcp</th>
+                <th class="right" style="width:52px">Score</th>
+                <th class="right" style="width:72px">Prize (£)</th>
+                <th style="width:44px"></th>
+              </tr>
+            </thead>
+            <tbody id="results-div2-body"></tbody>
+          </table>
+        </div>
+
+        <!-- Div 3 -->
+        <div class="results-card" data-section="div3">
+          <div class="tie-toggle">
+  <span class="tie-label">Tie Handling:</span>
+  <div class="toggle-group tie-group" data-section="div3">
+    <button type="button" data-value="B" class="active">Duplicate (B)</button>
+    <button type="button" data-value="A">Average (A)</button>
+  </div>
+</div>
+
+          <div class="results-header">
+            <h3>Division 3</h3>
+            <div class="results-buttons">
+              <button class="small" data-action="revert">REVERT</button>
+              <button class="small" data-action="practical">SIMON'S</button>
+              <button class="small" data-action="manual">MANUAL</button>
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th style="width:30px">Pos</th>
+                <th>Name</th>
+                <th style="width:44px">Hcp</th>
+                <th class="right" style="width:52px">Score</th>
+                <th class="right" style="width:72px">Prize (£)</th>
+                <th style="width:44px"></th>
+              </tr>
+            </thead>
+            <tbody id="results-div3-body"></tbody>
+          </table>
+        </div>
+
+        <!-- Stableford -->
+        <div class="results-card" data-section="stableford">
+          <div class="results-header">
+            <div class="tie-toggle">
+  <span class="tie-label">Tie Handling:</span>
+  <div class="toggle-group tie-group" data-section="stableford">
+    <button type="button" data-value="B" class="active">Duplicate (B)</button>
+    <button type="button" data-value="A">Average (A)</button>
+  </div>
+</div>
+
+            <h3>Stableford (overall)</h3>
+            <div class="results-buttons">
+              <button class="small" data-action="revert">REVERT</button>
+              <button class="small" data-action="practical">SIMON'S</button>
+              <button class="small" data-action="manual">MANUAL</button>
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Pos</th>
+                <th>Name</th>
+                <th>Hcp</th>
+                <th class="right">Pts</th>
+                <th class="right">Prize (£)</th>
+              </tr>
+            </thead>
+            <tbody id="results-stb-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Two's combined results box -->
+      <div class="mt-12" id="twos-results-section">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <h3 style="margin:0;">Two's Results</h3>
+          <button class="small" id="btn-recalc-twos">Recalculate</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px;">
+
+          <!-- Two's Stableford -->
+          <div class="results-card" id="twos-stb-card">
+            <div class="results-header">
+              <h3 style="margin:0;font-size:14px;">Two's — Stableford</h3>
+              <span id="twos-stb-summary" class="hint"></span>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Hcp</th>
+                  <th>Hole(s)</th>
+                  <th class="right">Shares</th>
+                  <th class="right">Prize (£)</th>
+                </tr>
+              </thead>
+              <tbody id="twos-stb-body"></tbody>
+            </table>
+          </div>
+
+          <!-- Two's Medal -->
+          <div class="results-card" id="twos-med-card">
+            <div class="results-header">
+              <h3 style="margin:0;font-size:14px;">Two's — Medal</h3>
+              <span id="twos-med-summary" class="hint"></span>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Hcp</th>
+                  <th>Hole(s)</th>
+                  <th class="right">Shares</th>
+                  <th class="right">Prize (£)</th>
+                </tr>
+              </thead>
+              <tbody id="twos-med-body"></tbody>
+            </table>
+          </div>
+
+        </div>
+      </div>
+
+    </section>
+
+    <!-- MANUAL TAB -->
+    <section class="tab-panel" id="tab-manual">
+      <h2>Manual overrides &amp; notes</h2>
+      <p class="manual-note">
+        Manual mode allows you to override winners and prize amounts. Rows edited here (or via MANUAL in Results)
+        become locked and will not be recalculated by the engine until reverted.
+      </p>
+
+      <div class="manual-grid">
+        <div class="manual-card">
+          <h3>Division 1 manual overrides
+            <span class="manual-fund-row">
+              <span class="manual-fund-box">Fund: £<span id="mfund-div1">—</span></span>
+              <span class="manual-total-box" id="mtotal-box-div1">Allocated: £<span id="mtotal-div1">—</span></span>
+            </span>
+          </h3>
+          <table>
+            <thead>
+              <tr>
+                <th style="width:40px">Pos</th>
+                <th style="width:40px">Nr</th>
+                <th class="right" style="width:90px">Prize (£)</th>
+              </tr>
+            </thead>
+            <tbody id="manual-div1-body">
+              <!-- Synced with Results MANUAL expansion -->
+            </tbody>
+          </table>
+          <div class="manual-footer">Changes here will lock Division 1 rows.</div>
+        </div>
+
+        <div class="manual-card">
+          <h3>Division 2 manual overrides
+            <span class="manual-fund-row">
+              <span class="manual-fund-box">Fund: £<span id="mfund-div2">—</span></span>
+              <span class="manual-total-box" id="mtotal-box-div2">Allocated: £<span id="mtotal-div2">—</span></span>
+            </span>
+          </h3>
+          <table>
+            <thead>
+              <tr>
+                <th style="width:40px">Pos</th>
+                <th style="width:40px">Nr</th>
+                <th class="right" style="width:90px">Prize (£)</th>
+              </tr>
+            </thead>
+            <tbody id="manual-div2-body"></tbody>
+          </table>
+          <div class="manual-footer">Changes here will lock Division 2 rows.</div>
+        </div>
+
+        <div class="manual-card">
+          <h3>Division 3 manual overrides
+            <span class="manual-fund-row">
+              <span class="manual-fund-box">Fund: £<span id="mfund-div3">—</span></span>
+              <span class="manual-total-box" id="mtotal-box-div3">Allocated: £<span id="mtotal-div3">—</span></span>
+            </span>
+          </h3>
+          <table>
+            <thead>
+              <tr>
+                <th style="width:40px">Pos</th>
+                <th style="width:40px">Nr</th>
+                <th class="right" style="width:90px">Prize (£)</th>
+              </tr>
+            </thead>
+            <tbody id="manual-div3-body"></tbody>
+          </table>
+          <div class="manual-footer">Changes here will lock Division 3 rows.</div>
+        </div>
+
+        <div class="manual-card">
+          <h3>Stableford manual overrides
+            <span class="manual-fund-row">
+              <span class="manual-fund-box">Fund: £<span id="mfund-stb">—</span></span>
+              <span class="manual-total-box" id="mtotal-box-stb">Allocated: £<span id="mtotal-stb">—</span></span>
+            </span>
+          </h3>
+          <table>
+            <thead>
+              <tr>
+                <th style="width:40px">Pos</th>
+                <th style="width:40px">Nr</th>
+                <th class="right" style="width:90px">Prize (£)</th>
+              </tr>
+            </thead>
+            <tbody id="manual-stb-body"></tbody>
+          </table>
+          <div class="manual-footer">Changes here will lock Stableford rows.</div>
+        </div>
+      </div>
+
+      <h3 class="mt-12">Manual notes</h3>
+      <textarea id="manual-notes" placeholder="Add any manual notes or explanations here…"></textarea>
+    </section>
+
+    <!-- EXPORT TAB -->
+    <section class="tab-panel" id="tab-export">
+      <h2>Export &amp; Print</h2>
+      <p class="hint" style="margin-bottom:16px;">Select a report to preview and print.</p>
+
+      <div style="max-width:700px;margin-bottom:20px;">
+        <button class="export-btn primary" data-report="export-all-csv" style="font-size:14px;font-weight:700;padding:14px 20px;">
+          ⬇ Export All to CSV (Excel)
+        </button>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:700px;">
+
+        <!-- Stableford column -->
+        <div>
+          <h3 style="font-size:14px;font-weight:600;margin:0 0 12px;padding-bottom:6px;border-bottom:2px solid var(--accent);color:var(--accent);">Stableford</h3>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <button class="export-btn primary" data-report="stb-full">📄 Full Results</button>
+            <button class="export-btn primary" data-report="stb-prizes">🏆 Prizes</button>
+            <button class="export-btn primary" data-report="stb-twos">⛳ Two's</button>
+          </div>
+        </div>
+
+        <!-- Medal column -->
+        <div>
+          <h3 style="font-size:14px;font-weight:600;margin:0 0 12px;padding-bottom:6px;border-bottom:2px solid var(--text-muted);color:var(--text-muted);">Medal</h3>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <button class="export-btn" data-report="med-full">📄 Full Results</button>
+            <button class="export-btn" data-report="med-div1">📄 Div 1 Results</button>
+            <button class="export-btn" data-report="med-div2">📄 Div 2 Results</button>
+            <button class="export-btn" data-report="med-div3">📄 Div 3 Results</button>
+            <button class="export-btn" data-report="med-twos">⛳ Two's</button>
+            <button class="export-btn" data-report="med-prizes">🏆 Prizes</button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </div>
+
+ 
+<div id="guide-overlay"></div>
+
+<script src="js/state.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/import.js"></script>
+<script src="js/configure.js"></script>
+<script src="js/prizes.js"></script>
+<script src="js/twos.js"></script>
+<script src="js/results.js"></script>
+<script src="js/export.js"></script>
+<script src="js/manual.js"></script>
+<script src="js/guide.js"></script>
+<script src="js/main.js"></script>
+
+<script>
+  (function () {
+    const btn = document.getElementById('btn-medal-mode');
+    const divContent = document.getElementById('medal-div-content');
+    const singleContent = document.getElementById('medal-single-content');
+    const modeLabel = document.getElementById('medal-mode-label');
+
+    btn.addEventListener('click', function () {
+      const isSingle = singleContent.style.display !== 'none';
+      if (isSingle) {
+        divContent.style.display = '';
+        singleContent.style.display = 'none';
+        modeLabel.textContent = '(with Division headers)';
+        btn.textContent = 'Single Division';
+        btn.classList.remove('active');
+      } else {
+        divContent.style.display = 'none';
+        singleContent.style.display = '';
+        modeLabel.textContent = '(single division)';
+        btn.textContent = 'With Divisions';
+        btn.classList.add('active');
+      }
+    });
+  })();
+</script>
+
+</body>
+</html>
