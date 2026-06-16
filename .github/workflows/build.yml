@@ -7,26 +7,42 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: windows-latest
-            args: ''
-          - os: macos-latest
-            args: '--target universal-apple-darwin'
-
-    runs-on: ${{ matrix.os }}
-
+  build-windows:
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: '22'
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install frontend dependencies
+        run: npm install
+
+      - name: Build Tauri app (Windows)
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: 'Fulford Competition Helper ${{ github.ref_name }}'
+          releaseBody: 'Desktop app for Fulford Golf Club competition committee. Windows: run the -setup.exe. Mac: run the .dmg.'
+          releaseDraft: false
+          prerelease: false
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
 
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
@@ -36,18 +52,14 @@ jobs:
       - name: Install frontend dependencies
         run: npm install
 
-      - name: Build Tauri app
+      - name: Build Tauri app (macOS universal)
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tagName: ${{ github.ref_name }}
           releaseName: 'Fulford Competition Helper ${{ github.ref_name }}'
-          releaseBody: |
-            Desktop app release for Fulford Golf Club competition committee.
-
-            **Windows:** Download the `-setup.exe` file
-            **Mac:** Download the `.dmg` file
+          releaseBody: 'Desktop app for Fulford Golf Club competition committee. Windows: run the -setup.exe. Mac: run the .dmg.'
           releaseDraft: false
           prerelease: false
-          args: ${{ matrix.args }}
+          args: --target universal-apple-darwin
