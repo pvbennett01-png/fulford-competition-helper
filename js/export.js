@@ -31,6 +31,7 @@ window.Export = {
       "med-div3":       () => this.printMedalDiv("div3", "Division 3"),
       "med-twos":       () => this.printTwos("medal"),
       "med-prizes":     () => this.printMedalPrizes(),
+      "pairs-full":     () => this.printPairsFull(),
       "pairs-prizes":   () => this.printPairsPrizes(),
       "export-all-csv": () => this.exportAllCSV(),
     };
@@ -273,6 +274,34 @@ window.Export = {
     const body = this._header(`Medal — ${label}`)
       + this._sectionTable(key, label, "Nett", false);
     this._openWindow(`Medal ${label}`, body);
+  },
+
+  printPairsFull() {
+    const source = State.rawPairsAll.length ? State.rawPairsAll : State.rawPairs;
+    const list = [...source].sort((a, b) => {
+      if (a.score == null && b.score == null) return 0;
+      if (a.score == null) return 1;
+      if (b.score == null) return -1;
+      return a.score - b.score;
+    });
+
+    const rows = list.map((p, i) => `<tr>
+        <td>${i + 1}</td>
+        <td>${p.name}</td>
+        <td class="right">${p.score != null ? p.score : ""}</td>
+        <td>${p.status || ""}</td>
+      </tr>`).join("");
+
+    const table = list.length
+      ? `<table>
+          <thead><tr>
+            <th>Pos</th><th>Pair</th><th class="right">Nett</th><th>Status</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>`
+      : `<p style="color:#888;font-size:12px;">No pairs data loaded.</p>`;
+
+    this._openWindow("Pairs Full Results", this._header("Pairs — Full Results") + table);
   },
 
   printPairsPrizes() {
