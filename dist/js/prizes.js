@@ -140,13 +140,16 @@ window.Prizes = {
   },
 
   countEntries(section) {
+    // Count ALL entrants (including NR/DQ) — they all paid entry fees.
+    // NR/DQ players have score=null so they are excluded from prize lists
+    // automatically, but their fees must count toward the prize pot.
     if (section === "stableford") {
-      return State.rawStablefordAll.filter(p => p.score != null).length;
+      return State.rawStablefordAll.length;
     }
 
     // Single-division import: everyone goes to div1
     if (State.rawMedalSingleAll.length) {
-      return section === "div1" ? State.rawMedalSingleAll.filter(p => p.score != null).length : 0;
+      return section === "div1" ? State.rawMedalSingleAll.length : 0;
     }
 
     const allMedal = State.rawMedalAll;
@@ -158,7 +161,7 @@ window.Prizes = {
     const explicitDivisions = allMedal.some(p => p.division >= 1 && p.division <= 3);
 
     return allMedal.filter(p => {
-      if (p.score == null) return false;
+      // NR/DQ players still have hcp set — use it to assign them to a division
       let rawDiv;
       if (explicitDivisions && p.division >= 1) {
         rawDiv = p.division;
