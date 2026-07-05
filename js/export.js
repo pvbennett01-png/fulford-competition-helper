@@ -45,51 +45,50 @@ window.Export = {
   // SHARED: open a print window with HTML content
   // -----------------------------
   _openWindow(title, bodyHtml) {
-    const win = window.open("", "_blank", "width=900,height=700");
-    const base = window.location.href.replace(/[^/]*$/, "");
-    win.document.write(`<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <base href="${base}">
-  <title>${title}</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <style>
-    * { box-sizing: border-box; }
-    body { font-family: 'Inter', system-ui, sans-serif; margin: 24px 36px; color: #1a2e1d; background: #fff; }
-    h3  { font-size: 14px; margin: 20px 0 6px; color: #134325; font-weight: 700; }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 20px; }
-    th   { background: #134325; color: #fff; font-weight: 700; font-size: 11px;
-           text-transform: uppercase; letter-spacing: 0.4px;
-           padding: 6px 10px; text-align: left; }
-    td   { padding: 5px 10px; border-bottom: 1px solid #e4ede6; }
-    tbody tr:nth-child(even) td { background: #f4f8f5; }
-    .right { text-align: right; }
-    .prize { font-weight: 700; color: #134325; }
-    .section-title { font-family: 'Playfair Display', Georgia, serif;
-                     font-size: 16px; font-weight: 700; color: #134325;
-                     margin: 24px 0 8px; padding-bottom: 6px;
-                     border-bottom: 2px solid #134325; }
-    .meta  { font-size: 12px; color: #5a6e5c; margin-bottom: 16px; }
-    .print-btn { margin-top: 28px; text-align: right; }
-    .print-btn button { padding: 9px 20px; font-size: 13px; font-family: inherit;
-                        background: #134325; color: #fff; border: none;
-                        border-radius: 6px; cursor: pointer; font-weight: 600; }
-    .print-btn button:hover { background: #1e6b3a; }
-    @media print {
-      .print-btn { display: none; }
-      body { margin: 10px; }
-    }
-  </style>
-</head>
-<body>
-  ${bodyHtml}
-  <div class="print-btn">
-    <button onclick="window.print()">🖨 Print / Save PDF</button>
-  </div>
-</body>
-</html>`);
-    win.document.close();
+    const prev = document.getElementById("__print-overlay");
+    if (prev) prev.remove();
+    const prevStyle = document.getElementById("__print-style");
+    if (prevStyle) prevStyle.remove();
+
+    const style = document.createElement("style");
+    style.id = "__print-style";
+    style.textContent = `
+      @media print {
+        body > *:not(#__print-overlay) { display: none !important; }
+        #__print-overlay { position: static !important; overflow: visible !important; }
+        #__print-overlay [data-noprint] { display: none !important; }
+      }
+      #__print-overlay h3 { font-size: 14px; margin: 20px 0 6px; color: #134325; font-weight: 700; }
+      #__print-overlay table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 20px; }
+      #__print-overlay th { background: #134325; color: #fff; font-weight: 700; font-size: 11px;
+        text-transform: uppercase; letter-spacing: 0.4px; padding: 6px 10px; text-align: left; }
+      #__print-overlay td { padding: 5px 10px; border-bottom: 1px solid #e4ede6; }
+      #__print-overlay tbody tr:nth-child(even) td { background: #f4f8f5; }
+      #__print-overlay .right { text-align: right; }
+      #__print-overlay .prize { font-weight: 700; color: #134325; }
+      #__print-overlay .section-title { font-family: 'Playfair Display', Georgia, serif;
+        font-size: 16px; font-weight: 700; color: #134325; margin: 24px 0 8px;
+        padding-bottom: 6px; border-bottom: 2px solid #134325; }
+      #__print-overlay .meta { font-size: 12px; color: #5a6e5c; margin-bottom: 16px; }`;
+    document.head.appendChild(style);
+
+    const overlay = document.createElement("div");
+    overlay.id = "__print-overlay";
+    overlay.style.cssText =
+      "position:fixed;inset:0;z-index:9999;background:#fff;overflow-y:auto;" +
+      "font-family:'Inter',system-ui,sans-serif;color:#1a2e1d;font-size:13px;";
+    overlay.innerHTML = `
+      <div style="max-width:860px;margin:0 auto;padding:28px 36px">
+        ${bodyHtml}
+        <div data-noprint style="margin-top:28px;text-align:right;display:flex;justify-content:flex-end;gap:10px">
+          <button id="__pfc-close" style="padding:9px 20px;font-size:13px;font-family:inherit;
+            background:#fff;color:#134325;border:2px solid #134325;border-radius:6px;cursor:pointer;font-weight:600">Close</button>
+          <button onclick="window.print()" style="padding:9px 20px;font-size:13px;font-family:inherit;
+            background:#134325;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600">&#128424; Print / Save PDF</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    document.getElementById("__pfc-close").onclick = () => { overlay.remove(); style.remove(); };
   },
 
   // -----------------------------
@@ -306,7 +305,7 @@ window.Export = {
 
   printPairsPrizes() {
     const list   = State.divisions.pairs || [];
-    const prizes = State.prizeData.pairs || [];
+    const prizes = list.length ? Prizes.compute("pairs") : [];
     if (!list.length) {
       this._openWindow("Pairs Prizes", this._header("Pairs — Prizes") + "<p style=\"color:#888;font-size:12px;\">No pairs data loaded.</p>");
       return;
