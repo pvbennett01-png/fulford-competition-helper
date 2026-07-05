@@ -147,6 +147,10 @@ window.Prizes = {
       return State.rawStablefordAll.length;
     }
 
+    if (section === "pairs") {
+      return State.rawPairsAll.length * 2;
+    }
+
     // Single-division import: everyone goes to div1
     if (State.rawMedalSingleAll.length) {
       return section === "div1" ? State.rawMedalSingleAll.length : 0;

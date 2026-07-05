@@ -178,7 +178,7 @@ window.Configure = {
   assignDivisions() {
     const b = State.boundaries;
     const numDivs = State.medalDivisions || 3;
-    const div1 = [], div2 = [], div3 = [], stb = [];
+    const div1 = [], div2 = [], div3 = [], stb = [], pairs = [];
     const medalSource = State.rawMedalSingle.length ? State.rawMedalSingle : State.rawMedal;
 
     if (State.rawMedalSingle.length) {
@@ -209,6 +209,9 @@ window.Configure = {
     // Stableford players form their own separate leaderboard
     State.rawStableford.forEach(p => stb.push(p));
 
+    // Pairs: already in position order from ClubV1; re-sort ascending (lower nett = better)
+    State.rawPairs.forEach(p => pairs.push(p));
+
     // Medal: sort ascending (lower nett score = better)
     div1.sort((a, b) => a.score - b.score);
     div2.sort((a, b) => a.score - b.score);
@@ -217,7 +220,10 @@ window.Configure = {
     // Stableford: sort descending (higher points = better)
     stb.sort((a, b) => b.score - a.score);
 
-    State.divisions = { div1, div2, div3, stableford: stb };
+    // Pairs: sort ascending (lower nett = better)
+    pairs.sort((a, b) => a.score - b.score);
+
+    State.divisions = { div1, div2, div3, stableford: stb, pairs };
   },
 
   // -----------------------------
@@ -225,28 +231,38 @@ window.Configure = {
   // -----------------------------
   buildPreview() {
     const map = [
-      { key: "div1",       body: "preview-div1-body", count: "preview-div1-count" },
-      { key: "div2",       body: "preview-div2-body", count: "preview-div2-count" },
-      { key: "div3",       body: "preview-div3-body", count: "preview-div3-count" },
-      { key: "stableford", body: "preview-stb-body",  count: "preview-stb-count"  }
+      { key: "div1",       body: "preview-div1-body",   count: "preview-div1-count"   },
+      { key: "div2",       body: "preview-div2-body",   count: "preview-div2-count"   },
+      { key: "div3",       body: "preview-div3-body",   count: "preview-div3-count"   },
+      { key: "stableford", body: "preview-stb-body",    count: "preview-stb-count"    },
+      { key: "pairs",      body: "preview-pairs-body",  count: "preview-pairs-count"  }
     ];
 
     map.forEach(({ key, body, count }) => {
       const tbody   = document.getElementById(body);
       const countEl = document.getElementById(count);
+      if (!tbody || !countEl) return;
       tbody.innerHTML = "";
 
       const list = State.divisions[key] || [];
-      countEl.textContent = `${list.length} players`;
+      countEl.textContent = key === "pairs" ? `${list.length} pairs` : `${list.length} players`;
 
       list.slice(0, 5).forEach((p, idx) => {
         const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${idx + 1}</td>
-          <td>${p.name}</td>
-          <td>${p.hcp}</td>
-          <td class="right">${p.score}</td>
-        `;
+        if (key === "pairs") {
+          tr.innerHTML = `
+            <td>${idx + 1}</td>
+            <td>${p.name}</td>
+            <td class="right">${p.score}</td>
+          `;
+        } else {
+          tr.innerHTML = `
+            <td>${idx + 1}</td>
+            <td>${p.name}</td>
+            <td>${p.hcp != null ? p.hcp : "—"}</td>
+            <td class="right">${p.score}</td>
+          `;
+        }
         tbody.appendChild(tr);
       });
     });

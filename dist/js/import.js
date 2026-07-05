@@ -31,6 +31,7 @@ window.Import = {
       { btnId: "btn-parse-medal-single",     txtId: "txt-medal-single",     statusId: "status-medal-single",     handler: rows => this.handleMedalSingleCSV(rows) },
       { btnId: "btn-parse-twos-stableford",  txtId: "txt-twos-stableford",  statusId: "status-twos-stableford",  handler: rows => this.handleTwosStablefordCSV(rows) },
       { btnId: "btn-parse-twos-medal",       txtId: "txt-twos-medal",       statusId: "status-twos-medal",       handler: rows => this.handleTwosMedalCSV(rows) },
+      { btnId: "btn-parse-pairs",            txtId: "txt-pairs",            statusId: "status-pairs",            handler: rows => this.handlePairsCSV(rows) },
     ];
 
     pairs.forEach(({ btnId, txtId, statusId, handler }) => {
@@ -55,6 +56,7 @@ window.Import = {
       { id: "file-medal-single",    txt: "txt-medal-single",    type: "medal-single"    },
       { id: "file-twos-stableford", txt: "txt-twos-stableford", type: "twos-stableford" },
       { id: "file-twos-medal",      txt: "txt-twos-medal",      type: "twos-medal"      },
+      { id: "file-pairs",           txt: "txt-pairs",           type: "pairs"           },
     ];
 
     map.forEach(({ id, txt, type }) => {
@@ -84,6 +86,7 @@ window.Import = {
     this._bindPaste('[data-type="medal-single"]',    "txt-medal-single",    rows => this.handleMedalSingleCSV(rows));
     this._bindPaste('[data-type="twos-stableford"]', "txt-twos-stableford", rows => this.handleTwosStablefordCSV(rows));
     this._bindPaste('[data-type="twos-medal"]',      "txt-twos-medal",      rows => this.handleTwosMedalCSV(rows));
+    this._bindPaste('[data-type="pairs"]',           "txt-pairs",           rows => this.handlePairsCSV(rows));
   },
 
   _bindPaste(selector, textareaId, handler) {
@@ -146,6 +149,7 @@ window.Import = {
       case "medal-single":    return this.handleMedalSingleCSV(rows);
       case "twos-stableford": return this.handleTwosStablefordCSV(rows);
       case "twos-medal":      return this.handleTwosMedalCSV(rows);
+      case "pairs":           return this.handlePairsCSV(rows);
       default: console.warn("Unknown import type:", type);
     }
   },
@@ -399,5 +403,35 @@ window.Import = {
     document.getElementById("hint-twos-medal").textContent =
       players.length ? `${players.length} Two's Medal players loaded.` : "No valid rows found — check CSV format.";
     Twos.render();
+  },
+
+  handlePairsCSV(rows) {
+    const eligible = [], all = [];
+    rows.forEach((r, idx) => {
+      if (!r || r.length < 3) return;
+      const posCell = r[0].trim().replace(/^﻿/, "");
+      const lowerPos = posCell.toLowerCase();
+      if (lowerPos === "pos" || lowerPos === "") return;
+      if (!r[1] || !r[1].trim()) return;
+      const name = (r[1] || "").trim();
+      const nett = Number(r[2]);
+      const nettRaw = (r[2] || "").trim().toUpperCase();
+      if (!name) return;
+      const pair = { id: "P" + idx, name, hcp: null, score: null, type: "pairs" };
+      if (!isNaN(Number(posCell)) && !isNaN(nett)) {
+        pair.nett = nett; pair.score = nett; pair.status = "";
+        eligible.push(pair);
+      } else {
+        pair.nett = null; pair.score = null;
+        pair.status = ["NR", "DQ"].includes(nettRaw) ? nettRaw : "NR";
+      }
+      all.push(pair);
+    });
+    State.rawPairs = eligible;
+    State.rawPairsAll = all;
+    Utils.setStatus("status-pairs", `Loaded ${eligible.length} pairs (${all.length} total)`, eligible.length ? "ok" : "warn");
+    document.getElementById("hint-pairs").textContent =
+      all.length ? `${eligible.length} pairs loaded (${all.length - eligible.length} NR/DQ).` : "No valid rows found — check CSV format.";
+    Configure.recomputeDivisionsAndPreview();
   }
 };

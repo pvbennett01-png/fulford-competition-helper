@@ -102,10 +102,11 @@ window.UI = {
   // Build tab or comma-delimited results text
   buildResultsText(sep) {
     const sections = [
-      { key: "div1", label: "Division 1" },
-      { key: "div2", label: "Division 2" },
-      { key: "div3", label: "Division 3" },
-      { key: "stableford", label: "Stableford" }
+      { key: "div1",       label: "Division 1" },
+      { key: "div2",       label: "Division 2" },
+      { key: "div3",       label: "Division 3" },
+      { key: "stableford", label: "Stableford" },
+      { key: "pairs",      label: "Pairs"       }
     ];
 
     const lines = [];
@@ -120,11 +121,17 @@ window.UI = {
       if (!list.length) return;
 
       lines.push(label);
-      lines.push(["Pos", "Name", "Hcp", "Score", "Prize (£)"].join(sep));
-
-      list.forEach((p, i) => {
-        lines.push([i + 1, p.name, p.hcp, p.score, (prizes[i] || 0).toFixed(2)].join(sep));
-      });
+      if (key === "pairs") {
+        lines.push(["Pos", "Pair", "Nett", "Prize/pair (£)"].join(sep));
+        list.forEach((p, i) => {
+          lines.push([i + 1, p.name, p.score, (prizes[i] || 0).toFixed(2)].join(sep));
+        });
+      } else {
+        lines.push(["Pos", "Name", "Hcp", "Score", "Prize (£)"].join(sep));
+        list.forEach((p, i) => {
+          lines.push([i + 1, p.name, p.hcp ?? "—", p.score, (prizes[i] || 0).toFixed(2)].join(sep));
+        });
+      }
 
       lines.push("");
     });

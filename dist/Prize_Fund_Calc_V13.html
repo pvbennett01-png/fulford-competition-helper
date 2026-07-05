@@ -1040,6 +1040,25 @@
 
   </div>
 
+  <h3 class="mt-12" style="font-size:14px;color:var(--text-muted);margin-bottom:8px;">Pairs competitions</h3>
+  <div class="import-panels">
+    <div class="import-panel" id="panel-pairs">
+      <h3>
+        Pairs CSV (e.g. Connor Cup)
+        <span id="status-pairs" class="status-pill">Waiting for input</span>
+      </h3>
+      <div class="drop-zone" data-type="pairs">
+        ☁ Drop CSV here or click to browse
+        <input type="file" id="file-pairs" accept=".csv,text/csv" />
+      </div>
+      <textarea id="txt-pairs" placeholder="Paste Pairs CSV here..."></textarea>
+      <div class="import-actions">
+        <button type="button" class="primary small" id="btn-parse-pairs">Parse Pairs</button>
+      </div>
+      <div class="mt-4 hint" id="hint-pairs">No Pairs data loaded. Format: Pos, Pair Names, Nett (no Hcp column).</div>
+    </div>
+  </div>
+
   <div class="mt-12 right">
     <button type="button" class="primary" id="btn-import-next">
       Next: Configure ▸
@@ -1254,6 +1273,23 @@
             <tbody id="preview-stb-body"></tbody>
           </table>
         </div>
+
+        <div class="preview-card" data-block="pairs">
+          <div class="preview-card-header">
+            <h4>Pairs (overall)</h4>
+            <span class="count" id="preview-pairs-count">0 pairs</span>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Pos</th>
+                <th>Pair</th>
+                <th class="right">Nett</th>
+              </tr>
+            </thead>
+            <tbody id="preview-pairs-body"></tbody>
+          </table>
+        </div>
       </div>
 
       <div class="mt-12 right">
@@ -1305,6 +1341,14 @@
           <div class="audit-row"><span class="label">Fund:</span><span class="value" id="ab-stb-fund">£0</span></div>
           <div class="audit-row"><span class="label">Allocated:</span><span class="value" id="ab-stb-allocated">£0</span></div>
           <div class="audit-row"><span class="label">Surplus:</span><span class="value" id="ab-stb-surplus">£0</span></div>
+        </div>
+        <!-- Pairs -->
+        <div class="audit-box" data-audit="pairs" style="display:none;background:#f9fafb;border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;">
+          <div style="font-weight:600;font-size:13px;margin-bottom:6px;">Pairs</div>
+          <div class="audit-row"><span class="label">Pairs:</span><span class="value" id="ab-pairs-pairs">0</span></div>
+          <div class="audit-row"><span class="label">Fund:</span><span class="value" id="ab-pairs-fund">£0</span></div>
+          <div class="audit-row"><span class="label">Allocated:</span><span class="value" id="ab-pairs-allocated">£0</span></div>
+          <div class="audit-row"><span class="label">Surplus:</span><span class="value" id="ab-pairs-surplus">£0</span></div>
         </div>
         <!-- Grand total -->
         <div class="audit-box" style="background:#e2ecff;border:1px solid var(--accent);border-radius:var(--radius);padding:8px 12px;">
@@ -1447,6 +1491,37 @@
               </tr>
             </thead>
             <tbody id="results-stb-body"></tbody>
+          </table>
+        </div>
+
+        <!-- Pairs results (full-width, hidden until pairs data loaded) -->
+        <div class="results-card" data-section="pairs" style="display:none;grid-column:1/-1;">
+          <div class="tie-toggle">
+            <span class="tie-label">Tie Handling:</span>
+            <div class="toggle-group tie-group" data-section="pairs">
+              <button type="button" data-value="B" class="active">Duplicate (B)</button>
+              <button type="button" data-value="A">Average (A)</button>
+            </div>
+          </div>
+          <div class="results-header">
+            <h3>Pairs (overall)</h3>
+            <div class="results-buttons">
+              <button class="small" data-action="revert">REVERT</button>
+              <button class="small" data-action="practical">PRACTICAL</button>
+              <button class="small" data-action="manual">MANUAL</button>
+            </div>
+          </div>
+          <p class="hint" style="margin:4px 0 8px;font-size:12px;">Prize shown per pair. Each player receives half.</p>
+          <table>
+            <thead>
+              <tr>
+                <th style="width:30px">Pos</th>
+                <th>Pair</th>
+                <th class="right" style="width:52px">Nett</th>
+                <th class="right" style="width:88px">Prize / pair (£)</th>
+              </tr>
+            </thead>
+            <tbody id="results-pairs-body"></tbody>
           </table>
         </div>
       </div>
@@ -1594,6 +1669,26 @@
           </table>
           <div class="manual-footer">Changes here will lock Stableford rows.</div>
         </div>
+
+        <div class="manual-card" id="manual-pairs-card" style="display:none">
+          <h3>Pairs manual overrides
+            <span class="manual-fund-row">
+              <span class="manual-fund-box">Fund: £<span id="mfund-pairs">—</span></span>
+              <span class="manual-total-box" id="mtotal-box-pairs">Allocated: £<span id="mtotal-pairs">—</span></span>
+            </span>
+          </h3>
+          <table>
+            <thead>
+              <tr>
+                <th style="width:40px">Pos</th>
+                <th style="width:40px">Pairs in group</th>
+                <th class="right" style="width:90px">Prize / pair (£)</th>
+              </tr>
+            </thead>
+            <tbody id="manual-pairs-body"></tbody>
+          </table>
+          <div class="manual-footer">Prize is per pair — each player receives half. Changes here will lock Pairs rows.</div>
+        </div>
       </div>
 
       <h3 class="mt-12">Manual notes</h3>
@@ -1611,7 +1706,7 @@
         </button>
       </div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:700px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;max-width:900px;">
 
         <!-- Stableford column -->
         <div>
@@ -1633,6 +1728,14 @@
             <button class="export-btn" data-report="med-div3">📄 Div 3 Results</button>
             <button class="export-btn" data-report="med-twos">⛳ Two's</button>
             <button class="export-btn" data-report="med-prizes">🏆 Prizes</button>
+          </div>
+        </div>
+
+        <!-- Pairs column -->
+        <div>
+          <h3 style="font-size:14px;font-weight:600;margin:0 0 12px;padding-bottom:6px;border-bottom:2px solid var(--accent);color:var(--accent);">Pairs</h3>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <button class="export-btn primary" data-report="pairs-prizes">🏆 Pairs Prizes</button>
           </div>
         </div>
 

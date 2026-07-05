@@ -82,10 +82,11 @@ window.Results = {
   // -----------------------------
   renderResults() {
     const map = [
-      { key: "div1",       body: "results-div1-body", scoreLabel: "Score" },
-      { key: "div2",       body: "results-div2-body", scoreLabel: "Score" },
-      { key: "div3",       body: "results-div3-body", scoreLabel: "Score" },
-      { key: "stableford", body: "results-stb-body",  scoreLabel: "Pts"   }
+      { key: "div1",       body: "results-div1-body",  scoreLabel: "Score" },
+      { key: "div2",       body: "results-div2-body",  scoreLabel: "Score" },
+      { key: "div3",       body: "results-div3-body",  scoreLabel: "Score" },
+      { key: "stableford", body: "results-stb-body",   scoreLabel: "Pts"   },
+      { key: "pairs",      body: "results-pairs-body", scoreLabel: "Nett"  }
     ];
 
     map.forEach(({ key, body }) => {
@@ -98,7 +99,7 @@ window.Results = {
 
       const prizes = Prizes.compute(key);
 
-      // Only show players who have been awarded a prize
+      // Only show entries that have been awarded a prize
       list.slice(0, prizes.length).forEach((p, idx) => {
         const locked = State.lockedRows[key].has(idx);
         const prize  = prizes[idx];
@@ -107,7 +108,7 @@ window.Results = {
         tr.innerHTML = `
           <td>${idx + 1}</td>
           <td>${p.name}</td>
-          <td>${p.hcp}</td>
+          <td>${p.hcp != null ? p.hcp : "—"}</td>
           <td class="right">${p.score}</td>
           <td class="right mono">${locked ? "🔒 " : ""}£${prize}</td>
         `;
@@ -122,6 +123,10 @@ window.Results = {
       const card = document.querySelector(`.results-card[data-section="${key}"]`);
       if (card) card.style.display = (key === "div2" ? numDivs >= 2 : numDivs >= 3) ? "" : "none";
     });
+
+    // Show/hide pairs results card
+    const pairsCard = document.querySelector('.results-card[data-section="pairs"]');
+    if (pairsCard) pairsCard.style.display = (State.divisions.pairs || []).length > 0 ? "" : "none";
 
     // Refresh per-section audit boxes and Two's results
     this.updateAuditBoxes();
@@ -161,6 +166,33 @@ window.Results = {
       this._setAudit(prefix, count, fund, allocated, surplus);
     });
 
+    // Pairs audit: entry fee is per person so playerCount = pairs × 2
+    const pairsAuditBox = document.querySelector('.audit-box[data-audit="pairs"]');
+    const pairsActive = State.rawPairsAll.length > 0;
+    if (pairsAuditBox) pairsAuditBox.style.display = pairsActive ? "" : "none";
+    if (pairsActive) {
+      const pairsCount  = State.rawPairsAll.length;
+      const playerCount = pairsCount * 2;
+      const gross       = State.entryFee * playerCount;
+      const fund        = Math.round(State.retention ? gross * 0.75 : gross);
+      const allocated   = Math.round((State.prizeData.pairs || []).reduce((s, v) => s + v, 0));
+      const surplus     = fund - allocated;
+
+      grandPlayers   += playerCount;
+      grandFund      += fund;
+      grandAllocated += allocated;
+
+      const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+      setEl("ab-pairs-pairs",     pairsCount);
+      setEl("ab-pairs-fund",      `£${fund}`);
+      setEl("ab-pairs-allocated", `£${allocated}`);
+      const surplusEl = document.getElementById("ab-pairs-surplus");
+      if (surplusEl) {
+        surplusEl.textContent = `£${surplus}`;
+        surplusEl.style.color = surplus < 0 ? "var(--danger)" : surplus === 0 ? "var(--success)" : "var(--warning)";
+      }
+    }
+
     this._setAudit("ab-total", grandPlayers, grandFund, grandAllocated, grandFund - grandAllocated);
   },
 
@@ -183,10 +215,11 @@ window.Results = {
   // -----------------------------
   syncManualTab() {
     const sections = [
-      { key: "div1",       bodyId: "manual-div1-body" },
-      { key: "div2",       bodyId: "manual-div2-body" },
-      { key: "div3",       bodyId: "manual-div3-body" },
-      { key: "stableford", bodyId: "manual-stb-body"  }
+      { key: "div1",       bodyId: "manual-div1-body"   },
+      { key: "div2",       bodyId: "manual-div2-body"   },
+      { key: "div3",       bodyId: "manual-div3-body"   },
+      { key: "stableford", bodyId: "manual-stb-body"    },
+      { key: "pairs",      bodyId: "manual-pairs-body"  }
     ];
 
     sections.forEach(({ key, bodyId }) => {
@@ -266,15 +299,20 @@ window.Results = {
       }
     });
 
+    // Show/hide pairs manual card
+    const pairsManualCard = document.getElementById("manual-pairs-card");
+    if (pairsManualCard) pairsManualCard.style.display = State.rawPairsAll.length > 0 ? "" : "none";
+
     const notes = document.getElementById("manual-notes");
     if (notes) notes.value = State.manualNotes;
 
     // Update fund / allocated pills in each manual card header
     [
-      { key: "div1",       fundId: "mfund-div1", totalId: "mtotal-div1", boxId: "mtotal-box-div1" },
-      { key: "div2",       fundId: "mfund-div2", totalId: "mtotal-div2", boxId: "mtotal-box-div2" },
-      { key: "div3",       fundId: "mfund-div3", totalId: "mtotal-div3", boxId: "mtotal-box-div3" },
-      { key: "stableford", fundId: "mfund-stb",  totalId: "mtotal-stb",  boxId: "mtotal-box-stb"  }
+      { key: "div1",       fundId: "mfund-div1",   totalId: "mtotal-div1",   boxId: "mtotal-box-div1"   },
+      { key: "div2",       fundId: "mfund-div2",   totalId: "mtotal-div2",   boxId: "mtotal-box-div2"   },
+      { key: "div3",       fundId: "mfund-div3",   totalId: "mtotal-div3",   boxId: "mtotal-box-div3"   },
+      { key: "stableford", fundId: "mfund-stb",    totalId: "mtotal-stb",    boxId: "mtotal-box-stb"    },
+      { key: "pairs",      fundId: "mfund-pairs",  totalId: "mtotal-pairs",  boxId: "mtotal-box-pairs"  }
     ].forEach(({ key, fundId, totalId, boxId }) => {
       const fund    = Math.round(Prizes.computePrizePot(Prizes.countEntries(key)));
       const total   = Math.round((State.prizeData[key] || []).reduce((s, v) => s + (Number(v) || 0), 0));

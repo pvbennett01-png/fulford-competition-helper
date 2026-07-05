@@ -12,6 +12,8 @@ window.State = {
   rawMedalSingleAll: [],
   rawTwosStableford: [],
   rawTwosMedal: [],
+  rawPairs: [],
+  rawPairsAll: [],
 
   // Two's prize funds (user-entered in Configure)
   twosStablefordFund: 0,
@@ -23,7 +25,8 @@ window.State = {
     div1: [],
     div2: [],
     div3: [],
-    stableford: []
+    stableford: [],
+    pairs: []
   },
 
   // Prize limits (user-editable in Configure)
@@ -34,21 +37,24 @@ window.State = {
     div1: [],
     div2: [],
     div3: [],
-    stableford: []
+    stableford: [],
+    pairs: []
   },
 
   lockedRows: {
     div1: new Set(),
     div2: new Set(),
     div3: new Set(),
-    stableford: new Set()
+    stableford: new Set(),
+    pairs: new Set()
   },
 
   tieMethod: {
     div1: "B",
     div2: "B",
     div3: "B",
-    stableford: "B"
+    stableford: "B",
+    pairs: "B"
   },
 
   boundaries: {
@@ -77,7 +83,8 @@ window.State = {
     div1:       "auto",
     div2:       "auto",
     div3:       "auto",
-    stableford: "auto"
+    stableford: "auto",
+    pairs:      "auto"
   },
 
   medalDivisions: 3

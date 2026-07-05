@@ -31,6 +31,7 @@ window.Export = {
       "med-div3":       () => this.printMedalDiv("div3", "Division 3"),
       "med-twos":       () => this.printTwos("medal"),
       "med-prizes":     () => this.printMedalPrizes(),
+      "pairs-prizes":   () => this.printPairsPrizes(),
       "export-all-csv": () => this.exportAllCSV(),
     };
 
@@ -274,6 +275,39 @@ window.Export = {
     this._openWindow(`Medal ${label}`, body);
   },
 
+  printPairsPrizes() {
+    const list   = State.divisions.pairs || [];
+    const prizes = State.prizeData.pairs || [];
+    if (!list.length) {
+      this._openWindow("Pairs Prizes", this._header("Pairs — Prizes") + "<p style=\"color:#888;font-size:12px;\">No pairs data loaded.</p>");
+      return;
+    }
+
+    const rows = list.slice(0, prizes.length).map((p, i) => {
+      const perPlayer = prizes[i] % 2 === 0 ? `£${prizes[i] / 2} each` : "";
+      return `<tr>
+        <td>${i + 1}</td>
+        <td>${p.name}</td>
+        <td class="right">${p.score}</td>
+        <td class="right prize">£${prizes[i]}</td>
+        <td class="right">${perPlayer}</td>
+      </tr>`;
+    }).join("");
+
+    const table = `
+      <div class="section-title">Pairs</div>
+      <p class="meta">Prize shown per pair. Each player receives half.</p>
+      <table>
+        <thead><tr>
+          <th>Pos</th><th>Pair</th><th class="right">Nett</th>
+          <th class="right">Prize / pair</th><th class="right">Per player</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+
+    this._openWindow("Pairs Prizes", this._header("Pairs — Prizes") + table);
+  },
+
   printMedalPrizes() {
     const n = State.medalDivisions || 3;
     let body = this._header("Medal — Prizes")
@@ -351,6 +385,15 @@ window.Export = {
       const r = [["Pos", "Name", "Hcp", "Pts", "Prize (£)"]];
       stbDiv.slice(0, stbPrizes.length).forEach((p, i) => r.push([i + 1, p.name, p.hcp, p.score, stbPrizes[i]]));
       pushSection("STABLEFORD — PRIZES", r);
+    }
+
+    // Pairs prizes
+    const pairsList   = State.divisions.pairs || [];
+    const pairsPrizes = State.prizeData.pairs || [];
+    if (pairsList.length && pairsPrizes.length) {
+      const r = [["Pos", "Pair", "Nett", "Prize/pair (£)"]];
+      pairsList.slice(0, pairsPrizes.length).forEach((p, i) => r.push([i + 1, p.name, p.score, pairsPrizes[i]]));
+      pushSection("PAIRS — PRIZES", r);
     }
 
     // Two's (only if data present)
