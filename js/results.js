@@ -98,20 +98,31 @@ window.Results = {
       if (!list || list.length === 0) return;
 
       const prizes = Prizes.compute(key);
+      const fmt    = v => v % 1 === 0 ? String(v) : v.toFixed(2);
 
-      // Only show entries that have been awarded a prize
+      // Only show entries that have been awarded a prize (skip zero-prize rows)
       list.slice(0, prizes.length).forEach((p, idx) => {
         const locked = State.lockedRows[key].has(idx);
         const prize  = prizes[idx];
+        if (prize === 0) return;
         const tr     = document.createElement("tr");
 
-        tr.innerHTML = `
-          <td>${idx + 1}</td>
-          <td>${p.name}</td>
-          <td>${p.hcp != null ? p.hcp : "—"}</td>
-          <td class="right">${p.score}</td>
-          <td class="right mono">${locked ? "🔒 " : ""}£${prize}</td>
-        `;
+        if (key === "pairs") {
+          tr.innerHTML = `
+            <td>${idx + 1}</td>
+            <td>${p.name}</td>
+            <td class="right">${p.score}</td>
+            <td class="right mono">${locked ? "🔒 " : ""}£${fmt(prize)}</td>
+          `;
+        } else {
+          tr.innerHTML = `
+            <td>${idx + 1}</td>
+            <td>${p.name}</td>
+            <td>${p.hcp != null ? p.hcp : "—"}</td>
+            <td class="right">${p.score}</td>
+            <td class="right mono">${locked ? "🔒 " : ""}£${fmt(prize)}</td>
+          `;
+        }
 
         tbody.appendChild(tr);
       });
