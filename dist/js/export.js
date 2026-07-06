@@ -115,17 +115,19 @@ window.Export = {
   // -----------------------------
   _sectionTable(key, title, scoreHeader, showPrizes) {
     const list   = State.divisions[key] || [];
-    const prizes = State.prizeData[key] || [];
+    const prizes = showPrizes && list.length ? Prizes.compute(key) : (State.prizeData[key] || []);
     if (!list.length) return `<p style="color:#888;font-size:12px;">No data for ${title}.</p>`;
 
+    const fmt      = v => v % 1 === 0 ? String(v) : v.toFixed(2);
     const prizeCol = showPrizes ? `<th class="right">Prize</th>` : "";
 
     let rows = "";
     const displayed = showPrizes ? list.slice(0, prizes.length) : list;
 
     displayed.forEach((p, i) => {
+      if (showPrizes && prizes[i] === 0) return;
       const prizeCell = showPrizes
-        ? `<td class="right prize">${prizes[i] != null ? "£" + prizes[i] : ""}</td>`
+        ? `<td class="right prize">${prizes[i] != null ? "£" + fmt(prizes[i]) : ""}</td>`
         : "";
       rows += `<tr>
         <td>${i + 1}</td>
@@ -311,13 +313,16 @@ window.Export = {
       return;
     }
 
+    const fmt  = v => v % 1 === 0 ? String(v) : v.toFixed(2);
     const rows = list.slice(0, prizes.length).map((p, i) => {
-      const perPlayer = prizes[i] % 2 === 0 ? `£${prizes[i] / 2} each` : "";
+      if (prizes[i] === 0) return "";
+      const half      = prizes[i] / 2;
+      const perPlayer = `£${fmt(half)} each`;
       return `<tr>
         <td>${i + 1}</td>
         <td>${p.name}</td>
         <td class="right">${p.score}</td>
-        <td class="right prize">£${prizes[i]}</td>
+        <td class="right prize">£${fmt(prizes[i])}</td>
         <td class="right">${perPlayer}</td>
       </tr>`;
     }).join("");

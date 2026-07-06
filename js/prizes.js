@@ -35,7 +35,7 @@ window.Prizes = {
     prizes = this.applyLockedRows(section, prizes);
 
     // Round all prizes to whole pounds
-    prizes = prizes.map(p => Math.round(p));
+    prizes = prizes.map(p => Math.round(p * 2) / 2);
 
     State.prizeData[section] = prizes;
     return prizes;
@@ -50,7 +50,7 @@ window.Prizes = {
     let prizes   = this._secretaryBuild(pot, groups);
 
     prizes = this.applyLockedRows(section, prizes);
-    prizes = prizes.map(p => Math.round(p));
+    prizes = prizes.map(p => Math.round(p * 2) / 2);
     State.prizeData[section] = prizes;
     return prizes;
   },
@@ -333,6 +333,6 @@ window.Prizes = {
       if (!locks.has(i) && tapered[i] > tapered[i - 1]) tapered[i] = tapered[i - 1];
     }
 
-    State.prizeData[section] = tapered.map(p => Math.round(p));
+    State.prizeData[section] = tapered.map(p => Math.round(p * 2) / 2);
   }
 };
