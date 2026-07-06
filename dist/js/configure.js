@@ -299,5 +299,9 @@ window.Configure = {
     this.assignDivisions();
     this.buildPreview();
     this.updateAuditBlock();
+    if (window.Results) {
+      Results.renderResults();
+      Results.syncManualTab();
+    }
   }
 };
