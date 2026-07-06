@@ -27,7 +27,8 @@ window.Prizes = {
     const list = State.divisions[section];
     if (!list || list.length === 0) { State.prizeData[section] = []; return []; }
 
-    const pot  = this.computePrizePot(this.countEntries(section));
+    const fee  = section === "pairs" ? State.pairsEntryFee : State.entryFee;
+    const pot  = this.computePrizePot(this.countEntries(section), fee);
     let prizes = this.buildTaperedPrizes(pot, list.length);
 
     prizes = this.enforceDescending(prizes);
@@ -45,7 +46,8 @@ window.Prizes = {
     const list = State.divisions[section];
     if (!list || list.length === 0) { State.prizeData[section] = []; return []; }
 
-    const pot    = this.computePrizePot(this.countEntries(section));
+    const fee    = section === "pairs" ? State.pairsEntryFee : State.entryFee;
+    const pot    = this.computePrizePot(this.countEntries(section), fee);
     const groups = this._buildGroups(list);
     let prizes   = this._secretaryBuild(pot, groups);
 
@@ -134,8 +136,8 @@ window.Prizes = {
   // -----------------------------
   // PRIZE POT (per section)
   // -----------------------------
-  computePrizePot(count) {
-    const gross = State.entryFee * count;
+  computePrizePot(count, fee) {
+    const gross = (fee ?? State.entryFee) * count;
     return State.retention ? gross * 0.75 : gross;
   },
 

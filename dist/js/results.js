@@ -184,7 +184,7 @@ window.Results = {
     if (pairsActive) {
       const pairsCount  = State.rawPairsAll.length;
       const playerCount = pairsCount * 2;
-      const gross       = State.entryFee * playerCount;
+      const gross       = State.pairsEntryFee * playerCount;
       const fund        = Math.round(State.retention ? gross * 0.75 : gross);
       const allocated   = Math.round((State.prizeData.pairs || []).reduce((s, v) => s + v, 0));
       const surplus     = fund - allocated;
@@ -325,7 +325,8 @@ window.Results = {
       { key: "stableford", fundId: "mfund-stb",    totalId: "mtotal-stb",    boxId: "mtotal-box-stb"    },
       { key: "pairs",      fundId: "mfund-pairs",  totalId: "mtotal-pairs",  boxId: "mtotal-box-pairs"  }
     ].forEach(({ key, fundId, totalId, boxId }) => {
-      const fund    = Math.round(Prizes.computePrizePot(Prizes.countEntries(key)));
+      const fee     = key === "pairs" ? State.pairsEntryFee : State.entryFee;
+      const fund    = Math.round(Prizes.computePrizePot(Prizes.countEntries(key), fee));
       const total   = Math.round((State.prizeData[key] || []).reduce((s, v) => s + (Number(v) || 0), 0));
       const fundEl  = document.getElementById(fundId);
       const totalEl = document.getElementById(totalId);

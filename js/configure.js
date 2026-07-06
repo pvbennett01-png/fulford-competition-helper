@@ -16,6 +16,7 @@ window.Configure = {
     this.initCompDetails();
     this.initRetentionToggle();
     this.initEntryFee();
+    this.initPairsEntryFee();
     this.initPrizeLimits();
     this.initTwosFunds();
     this.initDivisionCountToggle();
@@ -109,7 +110,23 @@ window.Configure = {
     const fee = document.getElementById("entry-fee");
     if (!fee) return;
     fee.addEventListener("change", () => {
+      const oldFee = State.entryFee;
       State.entryFee = Number(fee.value || 0);
+      // Keep pairs entry fee in sync if it hasn't been independently changed
+      const pairsFeeEl = document.getElementById("pairs-entry-fee");
+      if (pairsFeeEl && State.pairsEntryFee === oldFee) {
+        State.pairsEntryFee = State.entryFee;
+        pairsFeeEl.value = State.entryFee;
+      }
+      this.recomputeDivisionsAndPreview();
+    });
+  },
+
+  initPairsEntryFee() {
+    const fee = document.getElementById("pairs-entry-fee");
+    if (!fee) return;
+    fee.addEventListener("change", () => {
+      State.pairsEntryFee = Number(fee.value || 0);
       this.recomputeDivisionsAndPreview();
     });
   },

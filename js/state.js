@@ -67,6 +67,7 @@ window.State = {
   },
 
   entryFee: 4.00,
+  pairsEntryFee: 4.00,
   retention: true,
   compName: "",
   compDate: "",
