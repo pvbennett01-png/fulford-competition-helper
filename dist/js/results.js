@@ -265,7 +265,7 @@ window.Results = {
           <td>${this._ordinal(group.start + 1)}</td>
           <td>${group.count}</td>
           <td>
-            <input type="number" step="1" min="0"
+            <input type="number" step="0.5" min="0"
                    data-section="${key}" data-start="${group.start}"
                    data-count="${group.count}"
                    value="${group.prize}"
