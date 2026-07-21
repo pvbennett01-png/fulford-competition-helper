@@ -32,6 +32,7 @@ window.Import = {
       { btnId: "btn-parse-twos-stableford",  txtId: "txt-twos-stableford",  statusId: "status-twos-stableford",  handler: rows => this.handleTwosStablefordCSV(rows) },
       { btnId: "btn-parse-twos-medal",       txtId: "txt-twos-medal",       statusId: "status-twos-medal",       handler: rows => this.handleTwosMedalCSV(rows) },
       { btnId: "btn-parse-pairs",            txtId: "txt-pairs",            statusId: "status-pairs",            handler: rows => this.handlePairsCSV(rows) },
+      { btnId: "btn-parse-scramble",         txtId: "txt-scramble",         statusId: "status-scramble",         handler: rows => this.handleScrambleCSV(rows) },
     ];
 
     pairs.forEach(({ btnId, txtId, statusId, handler }) => {
@@ -57,6 +58,7 @@ window.Import = {
       { id: "file-twos-stableford", txt: "txt-twos-stableford", type: "twos-stableford" },
       { id: "file-twos-medal",      txt: "txt-twos-medal",      type: "twos-medal"      },
       { id: "file-pairs",           txt: "txt-pairs",           type: "pairs"           },
+      { id: "file-scramble",        txt: "txt-scramble",        type: "scramble"        },
     ];
 
     map.forEach(({ id, txt, type }) => {
@@ -87,6 +89,7 @@ window.Import = {
     this._bindPaste('[data-type="twos-stableford"]', "txt-twos-stableford", rows => this.handleTwosStablefordCSV(rows));
     this._bindPaste('[data-type="twos-medal"]',      "txt-twos-medal",      rows => this.handleTwosMedalCSV(rows));
     this._bindPaste('[data-type="pairs"]',           "txt-pairs",           rows => this.handlePairsCSV(rows));
+    this._bindPaste('[data-type="scramble"]',        "txt-scramble",        rows => this.handleScrambleCSV(rows));
   },
 
   _bindPaste(selector, textareaId, handler) {
@@ -150,6 +153,7 @@ window.Import = {
       case "twos-stableford": return this.handleTwosStablefordCSV(rows);
       case "twos-medal":      return this.handleTwosMedalCSV(rows);
       case "pairs":           return this.handlePairsCSV(rows);
+      case "scramble":        return this.handleScrambleCSV(rows);
       default: console.warn("Unknown import type:", type);
     }
   },
@@ -432,6 +436,47 @@ window.Import = {
     Utils.setStatus("status-pairs", `Loaded ${eligible.length} pairs (${all.length} total)`, eligible.length ? "ok" : "warn");
     document.getElementById("hint-pairs").textContent =
       all.length ? `${eligible.length} pairs loaded (${all.length - eligible.length} NR/DQ).` : "No valid rows found — check CSV format.";
+    Configure.recomputeDivisionsAndPreview();
+  },
+
+  // ------------------------------------------------------------------
+  // SCRAMBLE PARSER
+  // Format: Pos | Team Names (slash-separated) | Nett
+  // Columns: 3 — no Hcp column
+  // Sort: ascending (lower nett = better)
+  // Team size is derived by counting "/" separators + 1
+  // Skips "Division N" header rows and footer rows (Date/Score Type/Course)
+  // ------------------------------------------------------------------
+  handleScrambleCSV(rows) {
+    const eligible = [], all = [];
+    rows.forEach((r, idx) => {
+      if (!r || r.length < 3) return;
+      const posCell = r[0].trim().replace(/^﻿/, "");
+      const lower   = posCell.toLowerCase();
+      // Skip header, division label, and footer rows
+      if (lower === "pos" || lower === "" ||
+          lower.startsWith("division") || lower.startsWith("date") ||
+          lower.startsWith("score") || lower.startsWith("course")) return;
+      const name    = (r[1] || "").trim();
+      const nettRaw = (r[2] || "").trim().toUpperCase();
+      const nett    = Number(r[2]);
+      if (!name) return;
+      const playerCount = (name.match(/\//g) || []).length + 1;
+      const team = { id: "SC" + idx, name, playerCount, score: null, hcp: null, type: "scramble", status: "" };
+      if (!isNaN(Number(posCell)) && !isNaN(nett)) {
+        team.score = nett;
+        team.status = "";
+        eligible.push(team);
+      } else {
+        team.status = ["NR", "DQ"].includes(nettRaw) ? nettRaw : "NR";
+      }
+      all.push(team);
+    });
+    State.rawScramble = eligible;
+    State.rawScrambleAll = all;
+    Utils.setStatus("status-scramble", `Loaded ${eligible.length} teams (${all.length} total)`, eligible.length ? "ok" : "warn");
+    document.getElementById("hint-scramble").textContent =
+      all.length ? `${eligible.length} teams loaded (${all.length - eligible.length} NR/DQ).` : "No valid rows found — check CSV format.";
     Configure.recomputeDivisionsAndPreview();
   }
 };

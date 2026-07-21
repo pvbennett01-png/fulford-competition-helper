@@ -14,6 +14,8 @@ window.State = {
   rawTwosMedal: [],
   rawPairs: [],
   rawPairsAll: [],
+  rawScramble: [],
+  rawScrambleAll: [],
 
   // Two's prize funds (user-entered in Configure)
   twosStablefordFund: 0,
@@ -26,7 +28,8 @@ window.State = {
     div2: [],
     div3: [],
     stableford: [],
-    pairs: []
+    pairs: [],
+    scramble: []
   },
 
   // Prize limits (user-editable in Configure)
@@ -38,7 +41,8 @@ window.State = {
     div2: [],
     div3: [],
     stableford: [],
-    pairs: []
+    pairs: [],
+    scramble: []
   },
 
   lockedRows: {
@@ -46,7 +50,8 @@ window.State = {
     div2: new Set(),
     div3: new Set(),
     stableford: new Set(),
-    pairs: new Set()
+    pairs: new Set(),
+    scramble: new Set()
   },
 
   tieMethod: {
@@ -54,7 +59,8 @@ window.State = {
     div2: "B",
     div3: "B",
     stableford: "B",
-    pairs: "B"
+    pairs: "B",
+    scramble: "B"
   },
 
   boundaries: {
@@ -68,6 +74,7 @@ window.State = {
 
   entryFee: 4.00,
   pairsEntryFee: 4.00,
+  scrambleEntryFee: 4.00,
   retention: true,
   compName: "",
   compDate: "",
@@ -85,7 +92,8 @@ window.State = {
     div2:       "auto",
     div3:       "auto",
     stableford: "auto",
-    pairs:      "auto"
+    pairs:      "auto",
+    scramble:   "auto"
   },
 
   medalDivisions: 3

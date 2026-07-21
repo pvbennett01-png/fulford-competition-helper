@@ -22,18 +22,20 @@ window.Export = {
   // -----------------------------
   openReport(report) {
     const handlers = {
-      "stb-full":       () => this.printStablefordFull(),
-      "stb-prizes":     () => this.printStablefordPrizes(),
-      "stb-twos":       () => this.printTwos("stableford"),
-      "med-full":       () => this.printMedalFull(),
-      "med-div1":       () => this.printMedalDiv("div1", "Division 1"),
-      "med-div2":       () => this.printMedalDiv("div2", "Division 2"),
-      "med-div3":       () => this.printMedalDiv("div3", "Division 3"),
-      "med-twos":       () => this.printTwos("medal"),
-      "med-prizes":     () => this.printMedalPrizes(),
-      "pairs-full":     () => this.printPairsFull(),
-      "pairs-prizes":   () => this.printPairsPrizes(),
-      "export-all-csv": () => this.exportAllCSV(),
+      "stb-full":         () => this.printStablefordFull(),
+      "stb-prizes":       () => this.printStablefordPrizes(),
+      "stb-twos":         () => this.printTwos("stableford"),
+      "med-full":         () => this.printMedalFull(),
+      "med-div1":         () => this.printMedalDiv("div1", "Division 1"),
+      "med-div2":         () => this.printMedalDiv("div2", "Division 2"),
+      "med-div3":         () => this.printMedalDiv("div3", "Division 3"),
+      "med-twos":         () => this.printTwos("medal"),
+      "med-prizes":       () => this.printMedalPrizes(),
+      "pairs-full":       () => this.printPairsFull(),
+      "pairs-prizes":     () => this.printPairsPrizes(),
+      "scramble-full":    () => this.printScrambleFull(),
+      "scramble-prizes":  () => this.printScramblePrizes(),
+      "export-all-csv":   () => this.exportAllCSV(),
     };
 
     const fn = handlers[report];
@@ -341,6 +343,69 @@ window.Export = {
     this._openWindow("Pairs Prizes", this._header("Pairs — Prizes") + table);
   },
 
+  printScrambleFull() {
+    const source = State.rawScrambleAll.length ? State.rawScrambleAll : State.rawScramble;
+    const list = [...source].sort((a, b) => {
+      if (a.score == null && b.score == null) return 0;
+      if (a.score == null) return 1;
+      if (b.score == null) return -1;
+      return a.score - b.score;
+    });
+
+    const rows = list.map((p, i) => `<tr>
+        <td>${i + 1}</td>
+        <td>${p.name}</td>
+        <td class="right">${p.score != null ? p.score : ""}</td>
+        <td>${p.status || ""}</td>
+      </tr>`).join("");
+
+    const table = list.length
+      ? `<table>
+          <thead><tr>
+            <th>Pos</th><th>Team</th><th class="right">Nett</th><th>Status</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>`
+      : `<p style="color:#888;font-size:12px;">No scramble data loaded.</p>`;
+
+    this._openWindow("Scramble Full Results", this._header("Texas Scramble — Full Results") + table);
+  },
+
+  printScramblePrizes() {
+    const list   = State.divisions.scramble || [];
+    const prizes = list.length ? Prizes.compute("scramble") : [];
+    if (!list.length) {
+      this._openWindow("Scramble Prizes", this._header("Texas Scramble — Prizes") + "<p style=\"color:#888;font-size:12px;\">No scramble data loaded.</p>");
+      return;
+    }
+
+    const fmt  = v => v % 1 === 0 ? String(v) : v.toFixed(2);
+    const rows = list.slice(0, prizes.length).map((p, i) => {
+      if (prizes[i] === 0) return "";
+      const perPlayer = `£${fmt(prizes[i] / p.playerCount)} each`;
+      return `<tr>
+        <td>${i + 1}</td>
+        <td>${p.name}</td>
+        <td class="right">${p.score}</td>
+        <td class="right prize">£${fmt(prizes[i])}</td>
+        <td class="right">${perPlayer}</td>
+      </tr>`;
+    }).join("");
+
+    const table = `
+      <div class="section-title">Texas Scramble</div>
+      <p class="meta">Prize shown per team. Per-player share shown in final column.</p>
+      <table>
+        <thead><tr>
+          <th>Pos</th><th>Team</th><th class="right">Nett</th>
+          <th class="right">Prize / team</th><th class="right">Per player</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+
+    this._openWindow("Scramble Prizes", this._header("Texas Scramble — Prizes") + table);
+  },
+
   printMedalPrizes() {
     const n = State.medalDivisions || 3;
     let body = this._header("Medal — Prizes")
@@ -427,6 +492,19 @@ window.Export = {
       const r = [["Pos", "Pair", "Nett", "Prize/pair (£)"]];
       pairsList.slice(0, pairsPrizes.length).forEach((p, i) => r.push([i + 1, p.name, p.score, pairsPrizes[i]]));
       pushSection("PAIRS — PRIZES", r);
+    }
+
+    // Scramble prizes
+    const scrambleList   = State.divisions.scramble || [];
+    const scramblePrizes = State.prizeData.scramble || [];
+    if (scrambleList.length && scramblePrizes.length) {
+      const fmt = v => v % 1 === 0 ? String(v) : v.toFixed(2);
+      const r = [["Pos", "Team", "Nett", "Prize/team (£)", "Per player (£)"]];
+      scrambleList.slice(0, scramblePrizes.length).forEach((p, i) => {
+        if (scramblePrizes[i] === 0) return;
+        r.push([i + 1, p.name, p.score, scramblePrizes[i], fmt(scramblePrizes[i] / p.playerCount)]);
+      });
+      pushSection("SCRAMBLE — PRIZES", r);
     }
 
     // Two's (only if data present)

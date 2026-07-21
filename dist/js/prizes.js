@@ -27,7 +27,9 @@ window.Prizes = {
     const list = State.divisions[section];
     if (!list || list.length === 0) { State.prizeData[section] = []; return []; }
 
-    const fee  = section === "pairs" ? State.pairsEntryFee : State.entryFee;
+    const fee  = section === "pairs" ? State.pairsEntryFee
+               : section === "scramble" ? State.scrambleEntryFee
+               : State.entryFee;
     const pot  = this.computePrizePot(this.countEntries(section), fee);
     let prizes = this.buildTaperedPrizes(pot, list.length);
 
@@ -46,7 +48,9 @@ window.Prizes = {
     const list = State.divisions[section];
     if (!list || list.length === 0) { State.prizeData[section] = []; return []; }
 
-    const fee    = section === "pairs" ? State.pairsEntryFee : State.entryFee;
+    const fee    = section === "pairs" ? State.pairsEntryFee
+                 : section === "scramble" ? State.scrambleEntryFee
+                 : State.entryFee;
     const pot    = this.computePrizePot(this.countEntries(section), fee);
     const groups = this._buildGroups(list);
     let prizes   = this._secretaryBuild(pot, groups);
@@ -151,6 +155,11 @@ window.Prizes = {
 
     if (section === "pairs") {
       return State.rawPairsAll.length * 2;
+    }
+
+    if (section === "scramble") {
+      // Sum actual player counts across all teams (2, 3, or 4 man)
+      return State.rawScrambleAll.reduce((sum, t) => sum + (t.playerCount || 2), 0);
     }
 
     // Single-division import: everyone goes to div1

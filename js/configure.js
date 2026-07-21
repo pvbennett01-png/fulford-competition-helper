@@ -17,6 +17,7 @@ window.Configure = {
     this.initRetentionToggle();
     this.initEntryFee();
     this.initPairsEntryFee();
+    this.initScrambleEntryFee();
     this.initPrizeLimits();
     this.initTwosFunds();
     this.initDivisionCountToggle();
@@ -118,6 +119,12 @@ window.Configure = {
         State.pairsEntryFee = State.entryFee;
         pairsFeeEl.value = State.entryFee;
       }
+      // Keep scramble entry fee in sync if it hasn't been independently changed
+      const scrambleFeeEl = document.getElementById("scramble-entry-fee");
+      if (scrambleFeeEl && State.scrambleEntryFee === oldFee) {
+        State.scrambleEntryFee = State.entryFee;
+        scrambleFeeEl.value = State.entryFee;
+      }
       this.recomputeDivisionsAndPreview();
     });
   },
@@ -127,6 +134,15 @@ window.Configure = {
     if (!fee) return;
     fee.addEventListener("change", () => {
       State.pairsEntryFee = Number(fee.value || 0);
+      this.recomputeDivisionsAndPreview();
+    });
+  },
+
+  initScrambleEntryFee() {
+    const fee = document.getElementById("scramble-entry-fee");
+    if (!fee) return;
+    fee.addEventListener("change", () => {
+      State.scrambleEntryFee = Number(fee.value || 0);
       this.recomputeDivisionsAndPreview();
     });
   },
@@ -195,7 +211,7 @@ window.Configure = {
   assignDivisions() {
     const b = State.boundaries;
     const numDivs = State.medalDivisions || 3;
-    const div1 = [], div2 = [], div3 = [], stb = [], pairs = [];
+    const div1 = [], div2 = [], div3 = [], stb = [], pairs = [], scramble = [];
     const medalSource = State.rawMedalSingle.length ? State.rawMedalSingle : State.rawMedal;
 
     if (State.rawMedalSingle.length) {
@@ -229,6 +245,9 @@ window.Configure = {
     // Pairs: already in position order from ClubV1; re-sort ascending (lower nett = better)
     State.rawPairs.forEach(p => pairs.push(p));
 
+    // Scramble: sort ascending (lower nett = better)
+    State.rawScramble.forEach(t => scramble.push(t));
+
     // Medal: sort ascending (lower nett score = better)
     div1.sort((a, b) => a.score - b.score);
     div2.sort((a, b) => a.score - b.score);
@@ -240,7 +259,10 @@ window.Configure = {
     // Pairs: sort ascending (lower nett = better)
     pairs.sort((a, b) => a.score - b.score);
 
-    State.divisions = { div1, div2, div3, stableford: stb, pairs };
+    // Scramble: sort ascending (lower nett = better)
+    scramble.sort((a, b) => a.score - b.score);
+
+    State.divisions = { div1, div2, div3, stableford: stb, pairs, scramble };
   },
 
   // -----------------------------
@@ -248,11 +270,12 @@ window.Configure = {
   // -----------------------------
   buildPreview() {
     const map = [
-      { key: "div1",       body: "preview-div1-body",   count: "preview-div1-count"   },
-      { key: "div2",       body: "preview-div2-body",   count: "preview-div2-count"   },
-      { key: "div3",       body: "preview-div3-body",   count: "preview-div3-count"   },
-      { key: "stableford", body: "preview-stb-body",    count: "preview-stb-count"    },
-      { key: "pairs",      body: "preview-pairs-body",  count: "preview-pairs-count"  }
+      { key: "div1",       body: "preview-div1-body",     count: "preview-div1-count"     },
+      { key: "div2",       body: "preview-div2-body",     count: "preview-div2-count"     },
+      { key: "div3",       body: "preview-div3-body",     count: "preview-div3-count"     },
+      { key: "stableford", body: "preview-stb-body",      count: "preview-stb-count"      },
+      { key: "pairs",      body: "preview-pairs-body",    count: "preview-pairs-count"    },
+      { key: "scramble",   body: "preview-scramble-body", count: "preview-scramble-count" }
     ];
 
     map.forEach(({ key, body, count }) => {
@@ -262,11 +285,17 @@ window.Configure = {
       tbody.innerHTML = "";
 
       const list = State.divisions[key] || [];
-      countEl.textContent = key === "pairs" ? `${list.length} pairs` : `${list.length} players`;
+      if (key === "pairs") {
+        countEl.textContent = `${list.length} pairs`;
+      } else if (key === "scramble") {
+        countEl.textContent = `${list.length} teams`;
+      } else {
+        countEl.textContent = `${list.length} players`;
+      }
 
       list.slice(0, 5).forEach((p, idx) => {
         const tr = document.createElement("tr");
-        if (key === "pairs") {
+        if (key === "pairs" || key === "scramble") {
           tr.innerHTML = `
             <td>${idx + 1}</td>
             <td>${p.name}</td>

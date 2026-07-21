@@ -1059,6 +1059,25 @@
     </div>
   </div>
 
+  <h3 class="mt-12" style="font-size:14px;color:var(--text-muted);margin-bottom:8px;">Texas Scramble</h3>
+  <div class="import-panels">
+    <div class="import-panel" id="panel-scramble">
+      <h3>
+        Texas Scramble CSV
+        <span id="status-scramble" class="status-pill">Waiting for input</span>
+      </h3>
+      <div class="drop-zone" data-type="scramble">
+        ☁ Drop CSV here or click to browse
+        <input type="file" id="file-scramble" accept=".csv,text/csv" />
+      </div>
+      <textarea id="txt-scramble" placeholder="Paste Scramble CSV here..."></textarea>
+      <div class="import-actions">
+        <button type="button" class="primary small" id="btn-parse-scramble">Parse Scramble</button>
+      </div>
+      <div class="mt-4 hint" id="hint-scramble">No Scramble data loaded. Format: Pos, Team Names (slash-separated), Nett (no Hcp column).</div>
+    </div>
+  </div>
+
   <div class="mt-12 right">
     <button type="button" class="primary" id="btn-import-next">
       Next: Configure ▸
@@ -1148,6 +1167,12 @@
             <div>
               <label for="pairs-entry-fee">Pairs entry fee per player (£)</label>
               <input type="number" id="pairs-entry-fee" value="4.00" step="0.5" />
+            </div>
+          </div>
+          <div class="field-row">
+            <div>
+              <label for="scramble-entry-fee">Scramble entry fee per player (£)</label>
+              <input type="number" id="scramble-entry-fee" value="4.00" step="0.5" />
             </div>
           </div>
           <div class="field-row">
@@ -1294,6 +1319,23 @@
             <tbody id="preview-pairs-body"></tbody>
           </table>
         </div>
+
+        <div class="preview-card" data-block="scramble">
+          <div class="preview-card-header">
+            <h4>Texas Scramble</h4>
+            <span class="count" id="preview-scramble-count">0 teams</span>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Pos</th>
+                <th>Team</th>
+                <th class="right">Nett</th>
+              </tr>
+            </thead>
+            <tbody id="preview-scramble-body"></tbody>
+          </table>
+        </div>
       </div>
 
       <div class="mt-12 right">
@@ -1353,6 +1395,15 @@
           <div class="audit-row"><span class="label">Fund:</span><span class="value" id="ab-pairs-fund">£0</span></div>
           <div class="audit-row"><span class="label">Allocated:</span><span class="value" id="ab-pairs-allocated">£0</span></div>
           <div class="audit-row"><span class="label">Surplus:</span><span class="value" id="ab-pairs-surplus">£0</span></div>
+        </div>
+        <!-- Scramble -->
+        <div class="audit-box" data-audit="scramble" style="display:none;background:#f9fafb;border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;">
+          <div style="font-weight:600;font-size:13px;margin-bottom:6px;">Scramble</div>
+          <div class="audit-row"><span class="label">Teams:</span><span class="value" id="ab-scramble-teams">0</span></div>
+          <div class="audit-row"><span class="label">Players:</span><span class="value" id="ab-scramble-players">0</span></div>
+          <div class="audit-row"><span class="label">Fund:</span><span class="value" id="ab-scramble-fund">£0</span></div>
+          <div class="audit-row"><span class="label">Allocated:</span><span class="value" id="ab-scramble-allocated">£0</span></div>
+          <div class="audit-row"><span class="label">Surplus:</span><span class="value" id="ab-scramble-surplus">£0</span></div>
         </div>
         <!-- Grand total -->
         <div class="audit-box" style="background:#e2ecff;border:1px solid var(--accent);border-radius:var(--radius);padding:8px 12px;">
@@ -1528,6 +1579,37 @@
             <tbody id="results-pairs-body"></tbody>
           </table>
         </div>
+
+        <!-- Scramble results (full-width, hidden until scramble data loaded) -->
+        <div class="results-card" data-section="scramble" style="display:none;grid-column:1/-1;">
+          <div class="tie-toggle">
+            <span class="tie-label">Tie Handling:</span>
+            <div class="toggle-group tie-group" data-section="scramble">
+              <button type="button" data-value="B" class="active">Duplicate (B)</button>
+              <button type="button" data-value="A">Average (A)</button>
+            </div>
+          </div>
+          <div class="results-header">
+            <h3>Texas Scramble</h3>
+            <div class="results-buttons">
+              <button class="small" data-action="revert">REVERT</button>
+              <button class="small" data-action="practical">PRACTICAL</button>
+              <button class="small" data-action="manual">MANUAL</button>
+            </div>
+          </div>
+          <p class="hint" style="margin:4px 0 8px;font-size:12px;">Prize shown per team. Per-player share on prize sheet.</p>
+          <table>
+            <thead>
+              <tr>
+                <th style="width:30px">Pos</th>
+                <th>Team</th>
+                <th class="right" style="width:52px">Nett</th>
+                <th class="right" style="width:88px">Prize / team (£)</th>
+              </tr>
+            </thead>
+            <tbody id="results-scramble-body"></tbody>
+          </table>
+        </div>
       </div>
 
       <!-- Two's combined results box -->
@@ -1693,6 +1775,26 @@
           </table>
           <div class="manual-footer">Prize is per pair — each player receives half. Changes here will lock Pairs rows.</div>
         </div>
+
+        <div class="manual-card" id="manual-scramble-card" style="display:none">
+          <h3>Scramble manual overrides
+            <span class="manual-fund-row">
+              <span class="manual-fund-box">Fund: £<span id="mfund-scramble">—</span></span>
+              <span class="manual-total-box" id="mtotal-box-scramble">Allocated: £<span id="mtotal-scramble">—</span></span>
+            </span>
+          </h3>
+          <table>
+            <thead>
+              <tr>
+                <th style="width:40px">Pos</th>
+                <th style="width:40px">Teams in group</th>
+                <th class="right" style="width:90px">Prize / team (£)</th>
+              </tr>
+            </thead>
+            <tbody id="manual-scramble-body"></tbody>
+          </table>
+          <div class="manual-footer">Prize is per team. Changes here will lock Scramble rows.</div>
+        </div>
       </div>
 
       <h3 class="mt-12">Manual notes</h3>
@@ -1710,7 +1812,7 @@
         </button>
       </div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;max-width:900px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:24px;max-width:1100px;">
 
         <!-- Stableford column -->
         <div>
@@ -1741,6 +1843,15 @@
           <div style="display:flex;flex-direction:column;gap:8px;">
             <button class="export-btn primary" data-report="pairs-full">📄 Full Results</button>
             <button class="export-btn primary" data-report="pairs-prizes">🏆 Prizes</button>
+          </div>
+        </div>
+
+        <!-- Scramble column -->
+        <div>
+          <h3 style="font-size:14px;font-weight:600;margin:0 0 12px;padding-bottom:6px;border-bottom:2px solid var(--accent);color:var(--accent);">Scramble</h3>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <button class="export-btn primary" data-report="scramble-full">📄 Full Results</button>
+            <button class="export-btn primary" data-report="scramble-prizes">🏆 Prizes</button>
           </div>
         </div>
 

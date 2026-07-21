@@ -2,7 +2,7 @@
 // RESULTS MODULE
 // ------------------------------------------------------------
 // Handles:
-// - Rendering results tables (all four sections)
+// - Rendering results tables (all sections)
 // - Lock/unlock buttons per row
 // - REVERT: clears locks and recomputes
 // - PRACTICAL: applies practical taper smoothing
@@ -82,11 +82,12 @@ window.Results = {
   // -----------------------------
   renderResults() {
     const map = [
-      { key: "div1",       body: "results-div1-body",  scoreLabel: "Score" },
-      { key: "div2",       body: "results-div2-body",  scoreLabel: "Score" },
-      { key: "div3",       body: "results-div3-body",  scoreLabel: "Score" },
-      { key: "stableford", body: "results-stb-body",   scoreLabel: "Pts"   },
-      { key: "pairs",      body: "results-pairs-body", scoreLabel: "Nett"  }
+      { key: "div1",       body: "results-div1-body",     scoreLabel: "Score" },
+      { key: "div2",       body: "results-div2-body",     scoreLabel: "Score" },
+      { key: "div3",       body: "results-div3-body",     scoreLabel: "Score" },
+      { key: "stableford", body: "results-stb-body",      scoreLabel: "Pts"   },
+      { key: "pairs",      body: "results-pairs-body",    scoreLabel: "Nett"  },
+      { key: "scramble",   body: "results-scramble-body", scoreLabel: "Nett"  }
     ];
 
     map.forEach(({ key, body }) => {
@@ -100,14 +101,13 @@ window.Results = {
       const prizes = Prizes.compute(key);
       const fmt    = v => v % 1 === 0 ? String(v) : v.toFixed(2);
 
-      // Only show entries that have been awarded a prize (skip zero-prize rows)
       list.slice(0, prizes.length).forEach((p, idx) => {
         const locked = State.lockedRows[key].has(idx);
         const prize  = prizes[idx];
         if (prize === 0) return;
         const tr     = document.createElement("tr");
 
-        if (key === "pairs") {
+        if (key === "pairs" || key === "scramble") {
           tr.innerHTML = `
             <td>${idx + 1}</td>
             <td>${p.name}</td>
@@ -138,6 +138,10 @@ window.Results = {
     // Show/hide pairs results card
     const pairsCard = document.querySelector('.results-card[data-section="pairs"]');
     if (pairsCard) pairsCard.style.display = (State.divisions.pairs || []).length > 0 ? "" : "none";
+
+    // Show/hide scramble results card
+    const scrambleCard = document.querySelector('.results-card[data-section="scramble"]');
+    if (scrambleCard) scrambleCard.style.display = (State.divisions.scramble || []).length > 0 ? "" : "none";
 
     // Refresh per-section audit boxes and Two's results
     this.updateAuditBoxes();
@@ -197,10 +201,38 @@ window.Results = {
       setEl("ab-pairs-pairs",     pairsCount);
       setEl("ab-pairs-fund",      `£${fund}`);
       setEl("ab-pairs-allocated", `£${allocated}`);
-      const surplusEl = document.getElementById("ab-pairs-surplus");
-      if (surplusEl) {
-        surplusEl.textContent = `£${surplus}`;
-        surplusEl.style.color = surplus < 0 ? "var(--danger)" : surplus === 0 ? "var(--success)" : "var(--warning)";
+      const pairsSurplusEl = document.getElementById("ab-pairs-surplus");
+      if (pairsSurplusEl) {
+        pairsSurplusEl.textContent = `£${surplus}`;
+        pairsSurplusEl.style.color = surplus < 0 ? "var(--danger)" : surplus === 0 ? "var(--success)" : "var(--warning)";
+      }
+    }
+
+    // Scramble audit: sum actual player counts per team
+    const scrambleAuditBox = document.querySelector('.audit-box[data-audit="scramble"]');
+    const scrambleActive = State.rawScrambleAll.length > 0;
+    if (scrambleAuditBox) scrambleAuditBox.style.display = scrambleActive ? "" : "none";
+    if (scrambleActive) {
+      const teamCount   = State.rawScrambleAll.length;
+      const playerCount = State.rawScrambleAll.reduce((sum, t) => sum + (t.playerCount || 2), 0);
+      const gross       = State.scrambleEntryFee * playerCount;
+      const fund        = Math.round(State.retention ? gross * 0.75 : gross);
+      const allocated   = Math.round((State.prizeData.scramble || []).reduce((s, v) => s + v, 0));
+      const surplus     = fund - allocated;
+
+      grandPlayers   += playerCount;
+      grandFund      += fund;
+      grandAllocated += allocated;
+
+      const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+      setEl("ab-scramble-teams",     teamCount);
+      setEl("ab-scramble-players",   playerCount);
+      setEl("ab-scramble-fund",      `£${fund}`);
+      setEl("ab-scramble-allocated", `£${allocated}`);
+      const scrambleSurplusEl = document.getElementById("ab-scramble-surplus");
+      if (scrambleSurplusEl) {
+        scrambleSurplusEl.textContent = `£${surplus}`;
+        scrambleSurplusEl.style.color = surplus < 0 ? "var(--danger)" : surplus === 0 ? "var(--success)" : "var(--warning)";
       }
     }
 
@@ -222,15 +254,16 @@ window.Results = {
 
   // -----------------------------
   // SYNC MANUAL TAB
-  // Populates all four manual override tables
+  // Populates all manual override tables
   // -----------------------------
   syncManualTab() {
     const sections = [
-      { key: "div1",       bodyId: "manual-div1-body"   },
-      { key: "div2",       bodyId: "manual-div2-body"   },
-      { key: "div3",       bodyId: "manual-div3-body"   },
-      { key: "stableford", bodyId: "manual-stb-body"    },
-      { key: "pairs",      bodyId: "manual-pairs-body"  }
+      { key: "div1",       bodyId: "manual-div1-body"     },
+      { key: "div2",       bodyId: "manual-div2-body"     },
+      { key: "div3",       bodyId: "manual-div3-body"     },
+      { key: "stableford", bodyId: "manual-stb-body"      },
+      { key: "pairs",      bodyId: "manual-pairs-body"    },
+      { key: "scramble",   bodyId: "manual-scramble-body" }
     ];
 
     sections.forEach(({ key, bodyId }) => {
@@ -314,18 +347,25 @@ window.Results = {
     const pairsManualCard = document.getElementById("manual-pairs-card");
     if (pairsManualCard) pairsManualCard.style.display = State.rawPairsAll.length > 0 ? "" : "none";
 
+    // Show/hide scramble manual card
+    const scrambleManualCard = document.getElementById("manual-scramble-card");
+    if (scrambleManualCard) scrambleManualCard.style.display = State.rawScrambleAll.length > 0 ? "" : "none";
+
     const notes = document.getElementById("manual-notes");
     if (notes) notes.value = State.manualNotes;
 
     // Update fund / allocated pills in each manual card header
     [
-      { key: "div1",       fundId: "mfund-div1",   totalId: "mtotal-div1",   boxId: "mtotal-box-div1"   },
-      { key: "div2",       fundId: "mfund-div2",   totalId: "mtotal-div2",   boxId: "mtotal-box-div2"   },
-      { key: "div3",       fundId: "mfund-div3",   totalId: "mtotal-div3",   boxId: "mtotal-box-div3"   },
-      { key: "stableford", fundId: "mfund-stb",    totalId: "mtotal-stb",    boxId: "mtotal-box-stb"    },
-      { key: "pairs",      fundId: "mfund-pairs",  totalId: "mtotal-pairs",  boxId: "mtotal-box-pairs"  }
+      { key: "div1",       fundId: "mfund-div1",     totalId: "mtotal-div1",     boxId: "mtotal-box-div1"     },
+      { key: "div2",       fundId: "mfund-div2",     totalId: "mtotal-div2",     boxId: "mtotal-box-div2"     },
+      { key: "div3",       fundId: "mfund-div3",     totalId: "mtotal-div3",     boxId: "mtotal-box-div3"     },
+      { key: "stableford", fundId: "mfund-stb",      totalId: "mtotal-stb",      boxId: "mtotal-box-stb"      },
+      { key: "pairs",      fundId: "mfund-pairs",    totalId: "mtotal-pairs",    boxId: "mtotal-box-pairs"    },
+      { key: "scramble",   fundId: "mfund-scramble", totalId: "mtotal-scramble", boxId: "mtotal-box-scramble" }
     ].forEach(({ key, fundId, totalId, boxId }) => {
-      const fee     = key === "pairs" ? State.pairsEntryFee : State.entryFee;
+      const fee     = key === "pairs"    ? State.pairsEntryFee
+                    : key === "scramble" ? State.scrambleEntryFee
+                    : State.entryFee;
       const fund    = Math.round(Prizes.computePrizePot(Prizes.countEntries(key), fee));
       const total   = Math.round((State.prizeData[key] || []).reduce((s, v) => s + (Number(v) || 0), 0));
       const fundEl  = document.getElementById(fundId);
