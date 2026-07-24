@@ -440,12 +440,13 @@ window.Import = {
   },
 
   // ------------------------------------------------------------------
-  // SCRAMBLE PARSER
-  // Format: Pos | Team Names (slash-separated) | Nett
+  // CUSTOM COMPETITION PARSER
+  // Format: Pos | Team/Player Names (slash-separated) | Score
   // Columns: 3 — no Hcp column
-  // Sort: ascending (lower nett = better)
+  // CSV is pre-sorted by final position (winner first)
   // Team size is derived by counting "/" separators + 1
   // Skips "Division N" header rows and footer rows (Date/Score Type/Course)
+  // After parse, prompts user for Medal or Stableford format.
   // ------------------------------------------------------------------
   handleScrambleCSV(rows) {
     const eligible = [], all = [];
@@ -474,9 +475,28 @@ window.Import = {
     });
     State.rawScramble = eligible;
     State.rawScrambleAll = all;
-    Utils.setStatus("status-scramble", `Loaded ${eligible.length} teams (${all.length} total)`, eligible.length ? "ok" : "warn");
+    Utils.setStatus("status-scramble", `Loaded ${eligible.length} entries (${all.length} total)`, eligible.length ? "ok" : "warn");
     document.getElementById("hint-scramble").textContent =
-      all.length ? `${eligible.length} teams loaded (${all.length - eligible.length} NR/DQ).` : "No valid rows found — check CSV format.";
-    Configure.recomputeDivisionsAndPreview();
+      all.length ? `${eligible.length} entries loaded (${all.length - eligible.length} NR/DQ). Select format below.` : "No valid rows found — check CSV format.";
+    if (eligible.length) {
+      this._showFormatModal();
+    } else {
+      Configure.recomputeDivisionsAndPreview();
+    }
+  },
+
+  _showFormatModal() {
+    const modal = document.getElementById("scramble-format-modal");
+    if (!modal) { Configure.recomputeDivisionsAndPreview(); return; }
+    modal.style.display = "flex";
+
+    const close = format => {
+      State.scrambleFormat = format;
+      modal.style.display = "none";
+      Configure.recomputeDivisionsAndPreview();
+    };
+
+    document.getElementById("scramble-pick-medal").onclick      = () => close("medal");
+    document.getElementById("scramble-pick-stableford").onclick = () => close("stableford");
   }
 };

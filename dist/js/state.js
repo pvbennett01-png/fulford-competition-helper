@@ -16,6 +16,7 @@ window.State = {
   rawPairsAll: [],
   rawScramble: [],
   rawScrambleAll: [],
+  scrambleFormat: null,   // "medal" | "stableford" — set by format picker modal on import
 
   // Two's prize funds (user-entered in Configure)
   twosStablefordFund: 0,

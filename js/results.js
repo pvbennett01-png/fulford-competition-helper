@@ -139,9 +139,11 @@ window.Results = {
     const pairsCard = document.querySelector('.results-card[data-section="pairs"]');
     if (pairsCard) pairsCard.style.display = (State.divisions.pairs || []).length > 0 ? "" : "none";
 
-    // Show/hide scramble results card
+    // Show/hide scramble results card; update score column label to match chosen format
     const scrambleCard = document.querySelector('.results-card[data-section="scramble"]');
     if (scrambleCard) scrambleCard.style.display = (State.divisions.scramble || []).length > 0 ? "" : "none";
+    const scrambleScoreTh = document.getElementById("scramble-score-th");
+    if (scrambleScoreTh) scrambleScoreTh.textContent = State.scrambleFormat === "stableford" ? "Points" : "Nett";
 
     // Refresh per-section audit boxes and Two's results
     this.updateAuditBoxes();

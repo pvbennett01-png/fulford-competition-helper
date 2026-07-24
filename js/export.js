@@ -345,12 +345,8 @@ window.Export = {
 
   printScrambleFull() {
     const source = State.rawScrambleAll.length ? State.rawScrambleAll : State.rawScramble;
-    const list = [...source].sort((a, b) => {
-      if (a.score == null && b.score == null) return 0;
-      if (a.score == null) return 1;
-      if (b.score == null) return -1;
-      return a.score - b.score;
-    });
+    const list = [...source];  // preserve CSV order — scoring software outputs winner first
+    const scoreLabel = State.scrambleFormat === "stableford" ? "Points" : "Nett";
 
     const rows = list.map((p, i) => `<tr>
         <td>${i + 1}</td>
@@ -362,20 +358,23 @@ window.Export = {
     const table = list.length
       ? `<table>
           <thead><tr>
-            <th>Pos</th><th>Team</th><th class="right">Nett</th><th>Status</th>
+            <th>Pos</th><th>Team</th><th class="right">${scoreLabel}</th><th>Status</th>
           </tr></thead>
           <tbody>${rows}</tbody>
         </table>`
-      : `<p style="color:#888;font-size:12px;">No scramble data loaded.</p>`;
+      : `<p style="color:#888;font-size:12px;">No custom competition data loaded.</p>`;
 
-    this._openWindow("Scramble Full Results", this._header("Texas Scramble — Full Results") + table);
+    this._openWindow("Custom Competition Full Results", this._header("Custom Competition — Full Results") + table);
   },
 
   printScramblePrizes() {
     const list   = State.divisions.scramble || [];
     const prizes = list.length ? Prizes.compute("scramble") : [];
+    const scoreLabel  = State.scrambleFormat === "stableford" ? "Points" : "Nett";
+    const formatLabel = State.scrambleFormat === "stableford" ? "Stableford" : "Medal";
+    const compTitle   = State.compName || "Custom Competition";
     if (!list.length) {
-      this._openWindow("Scramble Prizes", this._header("Texas Scramble — Prizes") + "<p style=\"color:#888;font-size:12px;\">No scramble data loaded.</p>");
+      this._openWindow("Custom Competition Prizes", this._header("Custom Competition — Prizes") + "<p style=\"color:#888;font-size:12px;\">No custom competition data loaded.</p>");
       return;
     }
 
@@ -393,17 +392,17 @@ window.Export = {
     }).join("");
 
     const table = `
-      <div class="section-title">Texas Scramble</div>
-      <p class="meta">Prize shown per team. Per-player share shown in final column.</p>
+      <div class="section-title">${compTitle}</div>
+      <p class="meta">Format: ${formatLabel}. Prize shown per team. Per-player share shown in final column.</p>
       <table>
         <thead><tr>
-          <th>Pos</th><th>Team</th><th class="right">Nett</th>
+          <th>Pos</th><th>Team</th><th class="right">${scoreLabel}</th>
           <th class="right">Prize / team</th><th class="right">Per player</th>
         </tr></thead>
         <tbody>${rows}</tbody>
       </table>`;
 
-    this._openWindow("Scramble Prizes", this._header("Texas Scramble — Prizes") + table);
+    this._openWindow("Custom Competition Prizes", this._header("Custom Competition — Prizes") + table);
   },
 
   printMedalPrizes() {
@@ -494,17 +493,18 @@ window.Export = {
       pushSection("PAIRS — PRIZES", r);
     }
 
-    // Scramble prizes
+    // Custom Competition prizes
     const scrambleList   = State.divisions.scramble || [];
     const scramblePrizes = State.prizeData.scramble || [];
     if (scrambleList.length && scramblePrizes.length) {
       const fmt = v => v % 1 === 0 ? String(v) : v.toFixed(2);
-      const r = [["Pos", "Team", "Nett", "Prize/team (£)", "Per player (£)"]];
+      const scrScoreLabel = State.scrambleFormat === "stableford" ? "Points" : "Nett";
+      const r = [["Pos", "Team", scrScoreLabel, "Prize/team (£)", "Per player (£)"]];
       scrambleList.slice(0, scramblePrizes.length).forEach((p, i) => {
         if (scramblePrizes[i] === 0) return;
         r.push([i + 1, p.name, p.score, scramblePrizes[i], fmt(scramblePrizes[i] / p.playerCount)]);
       });
-      pushSection("SCRAMBLE — PRIZES", r);
+      pushSection("CUSTOM COMPETITION — PRIZES", r);
     }
 
     // Two's (only if data present)

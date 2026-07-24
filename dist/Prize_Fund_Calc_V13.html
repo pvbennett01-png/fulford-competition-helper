@@ -1059,22 +1059,22 @@
     </div>
   </div>
 
-  <h3 class="mt-12" style="font-size:14px;color:var(--text-muted);margin-bottom:8px;">Texas Scramble</h3>
+  <h3 class="mt-12" style="font-size:14px;color:var(--text-muted);margin-bottom:8px;">Custom Competitions</h3>
   <div class="import-panels">
     <div class="import-panel" id="panel-scramble">
       <h3>
-        Texas Scramble CSV
+        Custom Competition CSV
         <span id="status-scramble" class="status-pill">Waiting for input</span>
       </h3>
       <div class="drop-zone" data-type="scramble">
         ☁ Drop CSV here or click to browse
         <input type="file" id="file-scramble" accept=".csv,text/csv" />
       </div>
-      <textarea id="txt-scramble" placeholder="Paste Scramble CSV here..."></textarea>
+      <textarea id="txt-scramble" placeholder="Paste Custom Competition CSV here..."></textarea>
       <div class="import-actions">
-        <button type="button" class="primary small" id="btn-parse-scramble">Parse Scramble</button>
+        <button type="button" class="primary small" id="btn-parse-scramble">Parse</button>
       </div>
-      <div class="mt-4 hint" id="hint-scramble">No Scramble data loaded. Format: Pos, Team Names (slash-separated), Nett (no Hcp column).</div>
+      <div class="mt-4 hint" id="hint-scramble">No data loaded. Format: Pos, Names (use / to separate team members), Score (no Hcp column). Medal or Stableford format is selected on import.</div>
     </div>
   </div>
 
@@ -1171,7 +1171,7 @@
           </div>
           <div class="field-row">
             <div>
-              <label for="scramble-entry-fee">Scramble entry fee per player (£)</label>
+              <label for="scramble-entry-fee">Custom Comp. entry fee per player (£)</label>
               <input type="number" id="scramble-entry-fee" value="4.00" step="0.5" />
             </div>
           </div>
@@ -1322,7 +1322,7 @@
 
         <div class="preview-card" data-block="scramble">
           <div class="preview-card-header">
-            <h4>Texas Scramble</h4>
+            <h4>Custom Competitions</h4>
             <span class="count" id="preview-scramble-count">0 teams</span>
           </div>
           <table>
@@ -1398,7 +1398,7 @@
         </div>
         <!-- Scramble -->
         <div class="audit-box" data-audit="scramble" style="display:none;background:#f9fafb;border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;">
-          <div style="font-weight:600;font-size:13px;margin-bottom:6px;">Scramble</div>
+          <div style="font-weight:600;font-size:13px;margin-bottom:6px;">Custom Competitions</div>
           <div class="audit-row"><span class="label">Teams:</span><span class="value" id="ab-scramble-teams">0</span></div>
           <div class="audit-row"><span class="label">Players:</span><span class="value" id="ab-scramble-players">0</span></div>
           <div class="audit-row"><span class="label">Fund:</span><span class="value" id="ab-scramble-fund">£0</span></div>
@@ -1590,7 +1590,7 @@
             </div>
           </div>
           <div class="results-header">
-            <h3>Texas Scramble</h3>
+            <h3>Custom Competitions</h3>
             <div class="results-buttons">
               <button class="small" data-action="revert">REVERT</button>
               <button class="small" data-action="practical">PRACTICAL</button>
@@ -1603,7 +1603,7 @@
               <tr>
                 <th style="width:30px">Pos</th>
                 <th>Team</th>
-                <th class="right" style="width:52px">Nett</th>
+                <th id="scramble-score-th" class="right" style="width:52px">Nett</th>
                 <th class="right" style="width:88px">Prize / team (£)</th>
               </tr>
             </thead>
@@ -1777,7 +1777,7 @@
         </div>
 
         <div class="manual-card" id="manual-scramble-card" style="display:none">
-          <h3>Scramble manual overrides
+          <h3>Custom Competitions overrides
             <span class="manual-fund-row">
               <span class="manual-fund-box">Fund: £<span id="mfund-scramble">—</span></span>
               <span class="manual-total-box" id="mtotal-box-scramble">Allocated: £<span id="mtotal-scramble">—</span></span>
@@ -1793,7 +1793,7 @@
             </thead>
             <tbody id="manual-scramble-body"></tbody>
           </table>
-          <div class="manual-footer">Prize is per team. Changes here will lock Scramble rows.</div>
+          <div class="manual-footer">Prize is per team. Changes here will lock Custom Competition rows.</div>
         </div>
       </div>
 
@@ -1846,9 +1846,9 @@
           </div>
         </div>
 
-        <!-- Scramble column -->
+        <!-- Custom Competitions column -->
         <div>
-          <h3 style="font-size:14px;font-weight:600;margin:0 0 12px;padding-bottom:6px;border-bottom:2px solid var(--accent);color:var(--accent);">Scramble</h3>
+          <h3 style="font-size:14px;font-weight:600;margin:0 0 12px;padding-bottom:6px;border-bottom:2px solid var(--accent);color:var(--accent);">Custom Competitions</h3>
           <div style="display:flex;flex-direction:column;gap:8px;">
             <button class="export-btn primary" data-report="scramble-full">📄 Full Results</button>
             <button class="export-btn primary" data-report="scramble-prizes">🏆 Prizes</button>
@@ -1860,6 +1860,18 @@
   </div>
 
  
+<!-- Custom Competition Format Picker Modal -->
+<div id="scramble-format-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:10000;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:10px;padding:28px 32px;max-width:360px;width:100%;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.22);">
+    <h3 style="margin:0 0 8px;font-size:16px;color:#134325;">Custom Competition Format</h3>
+    <p style="margin:0 0 22px;color:#57606a;font-size:13px;">Is this a Medal (lowest score wins) or Stableford (most points wins) competition?</p>
+    <div style="display:flex;gap:12px;justify-content:center;">
+      <button id="scramble-pick-medal" style="padding:10px 22px;background:#134325;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;">Medal (Nett)</button>
+      <button id="scramble-pick-stableford" style="padding:10px 22px;background:#fff;color:#134325;border:2px solid #134325;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;">Stableford (Points)</button>
+    </div>
+  </div>
+</div>
+
 <div id="guide-overlay"></div>
 
 <script src="js/state.js"></script>

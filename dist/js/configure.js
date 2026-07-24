@@ -245,7 +245,7 @@ window.Configure = {
     // Pairs: already in position order from ClubV1; re-sort ascending (lower nett = better)
     State.rawPairs.forEach(p => pairs.push(p));
 
-    // Scramble: sort ascending (lower nett = better)
+    // Scramble: preserve CSV order — scoring software outputs winner first
     State.rawScramble.forEach(t => scramble.push(t));
 
     // Medal: sort ascending (lower nett score = better)
@@ -258,9 +258,6 @@ window.Configure = {
 
     // Pairs: sort ascending (lower nett = better)
     pairs.sort((a, b) => a.score - b.score);
-
-    // Scramble: sort ascending (lower nett = better)
-    scramble.sort((a, b) => a.score - b.score);
 
     State.divisions = { div1, div2, div3, stableford: stb, pairs, scramble };
   },
