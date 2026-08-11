@@ -420,8 +420,9 @@ window.Import = {
       const name = (r[1] || "").trim();
       const nett = Number(r[2]);
       const nettRaw = (r[2] || "").trim().toUpperCase();
+      const comment = this._extractComment(r, 3);
       if (!name) return;
-      const pair = { id: "P" + idx, name, hcp: null, score: null, type: "pairs" };
+      const pair = { id: "P" + idx, name, hcp: null, score: null, type: "pairs", comment: comment || "" };
       if (!isNaN(Number(posCell)) && !isNaN(nett)) {
         pair.nett = nett; pair.score = nett; pair.status = "";
         eligible.push(pair);

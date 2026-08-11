@@ -293,12 +293,13 @@ window.Export = {
         <td>${p.name}</td>
         <td class="right">${p.score != null ? p.score : ""}</td>
         <td>${p.status || ""}</td>
+        <td>${p.comment || ""}</td>
       </tr>`).join("");
 
     const table = list.length
       ? `<table>
           <thead><tr>
-            <th>Pos</th><th>Pair</th><th class="right">Nett</th><th>Status</th>
+            <th>Pos</th><th>Pair</th><th class="right">Nett</th><th>Status</th><th>Comment</th>
           </tr></thead>
           <tbody>${rows}</tbody>
         </table>`
@@ -482,6 +483,20 @@ window.Export = {
       const r = [["Pos", "Name", "Hcp", "Pts", "Prize (£)"]];
       stbDiv.slice(0, stbPrizes.length).forEach((p, i) => r.push([i + 1, p.name, p.hcp, p.score, stbPrizes[i]]));
       pushSection("STABLEFORD — PRIZES", r);
+    }
+
+    // Pairs full results
+    const pairsSrc = State.rawPairsAll.length ? State.rawPairsAll : State.rawPairs;
+    const pairsFull = [...pairsSrc].sort((a, b) => {
+      if (a.score == null && b.score == null) return 0;
+      if (a.score == null) return 1;
+      if (b.score == null) return -1;
+      return a.score - b.score;
+    });
+    if (pairsFull.length) {
+      const r = [["Pos", "Pair", "Nett", "Status", "Comment"]];
+      pairsFull.forEach((p, i) => r.push([i + 1, p.name, p.score ?? "", p.status || "", p.comment || ""]));
+      pushSection("PAIRS — FULL RESULTS", r);
     }
 
     // Pairs prizes
