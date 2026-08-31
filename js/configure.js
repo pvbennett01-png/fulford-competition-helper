@@ -27,11 +27,16 @@ window.Configure = {
   // COMPETITION DETAILS (live update)
   // -----------------------------
   initCompDetails() {
-    const nameEl = document.getElementById("comp-name");
-    const dateEl = document.getElementById("comp-date");
+    const nameEl      = document.getElementById("comp-name");
+    const medalNameEl = document.getElementById("comp-name-medal");
+    const dateEl      = document.getElementById("comp-date");
     if (nameEl) {
       State.compName = nameEl.value.trim();
       nameEl.addEventListener("input", () => { State.compName = nameEl.value.trim(); });
+    }
+    if (medalNameEl) {
+      State.compNameMedal = medalNameEl.value.trim();
+      medalNameEl.addEventListener("input", () => { State.compNameMedal = medalNameEl.value.trim(); });
     }
     if (dateEl) {
       State.compDate = dateEl.value;
@@ -200,6 +205,8 @@ window.Configure = {
 
   readCompDetails() {
     State.compName = document.getElementById("comp-name").value.trim();
+    const medalEl = document.getElementById("comp-name-medal");
+    if (medalEl) State.compNameMedal = medalEl.value.trim();
     State.compDate = document.getElementById("comp-date").value;
   },
 

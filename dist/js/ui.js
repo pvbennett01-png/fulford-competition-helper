@@ -56,7 +56,10 @@ window.UI = {
     const nameEl = document.getElementById("print-comp-name");
     const dateEl = document.getElementById("print-comp-date");
 
-    if (nameEl) nameEl.textContent = State.compName || "Prize Results";
+    if (nameEl) {
+      const both = [State.compName, State.compNameMedal].filter(Boolean).join(" / ");
+      nameEl.textContent = both || "Prize Results";
+    }
 
     if (dateEl && State.compDate) {
       // Format date nicely: YYYY-MM-DD → e.g. 12 May 2026
@@ -92,7 +95,7 @@ window.UI = {
         const a = document.createElement("a");
         a.href = url;
         const date = State.compDate || new Date().toISOString().slice(0, 10);
-        a.download = `${State.compName || "results"}_${date}.csv`;
+        a.download = `${State.compNameMedal || State.compName || "results"}_${date}.csv`;
         a.click();
         URL.revokeObjectURL(url);
       });
@@ -110,8 +113,9 @@ window.UI = {
     ];
 
     const lines = [];
-    const compLine = State.compName
-      ? `${State.compName}${State.compDate ? " — " + State.compDate : ""}`
+    const bothNames = [State.compName, State.compNameMedal].filter(Boolean).join(" / ");
+    const compLine = bothNames
+      ? `${bothNames}${State.compDate ? " — " + State.compDate : ""}`
       : "";
     if (compLine) lines.push(compLine, "");
 

@@ -78,6 +78,7 @@ window.State = {
   scrambleEntryFee: 4.00,
   retention: true,
   compName: "",
+  compNameMedal: "",
   compDate: "",
   manualNotes: "",
 

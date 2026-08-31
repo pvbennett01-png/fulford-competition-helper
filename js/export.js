@@ -93,11 +93,16 @@ window.Export = {
     document.getElementById("__pfc-close").onclick = () => { overlay.remove(); style.remove(); };
   },
 
+  // Returns the name to use for Stableford reports
+  _stbName()   { return State.compName || ""; },
+  // Returns the name to use for Medal / Pairs / Custom reports (falls back to Stableford name)
+  _medalName() { return State.compNameMedal || State.compName || ""; },
+
   // -----------------------------
   // SHARED: build header HTML
   // -----------------------------
-  _header(subtitle) {
-    const name = State.compName || "";
+  _header(subtitle, name) {
+    if (name === undefined) name = State.compName || "";
     const date = State.compDate
       ? new Date(State.compDate + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })
       : "";
@@ -219,11 +224,11 @@ window.Export = {
         </table>`
       : `<p style="color:#888;font-size:12px;">No Stableford data loaded.</p>`;
 
-    this._openWindow("Stableford Full Results", this._header("Stableford — Full Results") + table);
+    this._openWindow("Stableford Full Results", this._header("Stableford — Full Results", this._stbName()) + table);
   },
 
   printStablefordPrizes() {
-    const body = this._header("Stableford — Prizes")
+    const body = this._header("Stableford — Prizes", this._stbName())
       + this._sectionTable("stableford", "Stableford", "Pts", true);
     this._openWindow("Stableford Prizes", body);
   },
@@ -234,7 +239,7 @@ window.Export = {
     const fund    = isStb ? State.twosStablefordFund : State.twosMedalFund;
     const label   = isStb ? "Two's — Stableford" : "Two's — Medal";
 
-    const body = this._header(label)
+    const body = this._header(label, isStb ? this._stbName() : this._medalName())
       + this._twosTable(players, fund, label);
     this._openWindow(label, body);
   },
@@ -270,11 +275,11 @@ window.Export = {
         </table>`
       : `<p style="color:#888;font-size:12px;">No Medal data loaded.</p>`;
 
-    this._openWindow("Medal Full Results", this._header("Medal — Full Results") + table);
+    this._openWindow("Medal Full Results", this._header("Medal — Full Results", this._medalName()) + table);
   },
 
   printMedalDiv(key, label) {
-    const body = this._header(`Medal — ${label}`)
+    const body = this._header(`Medal — ${label}`, this._medalName())
       + this._sectionTable(key, label, "Nett", false);
     this._openWindow(`Medal ${label}`, body);
   },
@@ -305,14 +310,14 @@ window.Export = {
         </table>`
       : `<p style="color:#888;font-size:12px;">No pairs data loaded.</p>`;
 
-    this._openWindow("Pairs Full Results", this._header("Pairs — Full Results") + table);
+    this._openWindow("Pairs Full Results", this._header("Pairs — Full Results", this._medalName()) + table);
   },
 
   printPairsPrizes() {
     const list   = State.divisions.pairs || [];
     const prizes = list.length ? Prizes.compute("pairs") : [];
     if (!list.length) {
-      this._openWindow("Pairs Prizes", this._header("Pairs — Prizes") + "<p style=\"color:#888;font-size:12px;\">No pairs data loaded.</p>");
+      this._openWindow("Pairs Prizes", this._header("Pairs — Prizes", this._medalName()) + "<p style=\"color:#888;font-size:12px;\">No pairs data loaded.</p>");
       return;
     }
 
@@ -341,7 +346,7 @@ window.Export = {
         <tbody>${rows}</tbody>
       </table>`;
 
-    this._openWindow("Pairs Prizes", this._header("Pairs — Prizes") + table);
+    this._openWindow("Pairs Prizes", this._header("Pairs — Prizes", this._medalName()) + table);
   },
 
   printScrambleFull() {
@@ -365,7 +370,7 @@ window.Export = {
         </table>`
       : `<p style="color:#888;font-size:12px;">No custom competition data loaded.</p>`;
 
-    this._openWindow("Custom Competition Full Results", this._header("Custom Competition — Full Results") + table);
+    this._openWindow("Custom Competition Full Results", this._header("Custom Competition — Full Results", this._medalName()) + table);
   },
 
   printScramblePrizes() {
@@ -373,9 +378,9 @@ window.Export = {
     const prizes = list.length ? Prizes.compute("scramble") : [];
     const scoreLabel  = State.scrambleFormat === "stableford" ? "Points" : "Nett";
     const formatLabel = State.scrambleFormat === "stableford" ? "Stableford" : "Medal";
-    const compTitle   = State.compName || "Custom Competition";
+    const compTitle   = State.compNameMedal || State.compName || "Custom Competition";
     if (!list.length) {
-      this._openWindow("Custom Competition Prizes", this._header("Custom Competition — Prizes") + "<p style=\"color:#888;font-size:12px;\">No custom competition data loaded.</p>");
+      this._openWindow("Custom Competition Prizes", this._header("Custom Competition — Prizes", this._medalName()) + "<p style=\"color:#888;font-size:12px;\">No custom competition data loaded.</p>");
       return;
     }
 
@@ -403,12 +408,12 @@ window.Export = {
         <tbody>${rows}</tbody>
       </table>`;
 
-    this._openWindow("Custom Competition Prizes", this._header("Custom Competition — Prizes") + table);
+    this._openWindow("Custom Competition Prizes", this._header("Custom Competition — Prizes", this._medalName()) + table);
   },
 
   printMedalPrizes() {
     const n = State.medalDivisions || 3;
-    let body = this._header("Medal — Prizes")
+    let body = this._header("Medal — Prizes", this._medalName())
       + this._sectionTable("div1", "Division 1", "Nett", true);
     if (n >= 2) body += this._sectionTable("div2", "Division 2", "Nett", true);
     if (n >= 3) body += this._sectionTable("div3", "Division 3", "Nett", true);
@@ -419,7 +424,9 @@ window.Export = {
   // EXPORT ALL — single CSV with every table stacked vertically
   // ============================================================
   exportAllCSV() {
-    const compName = State.compName || "Competition";
+    const stbName  = State.compName || "";
+    const medName  = State.compNameMedal || "";
+    const compName = [stbName, medName].filter(Boolean).join(" / ") || "Competition";
     const compDate = State.compDate
       ? new Date(State.compDate + "T00:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })
       : "";
@@ -534,7 +541,7 @@ window.Export = {
       pushSection(title, r);
     });
 
-    const namePart = compName.replace(/[^a-z0-9]/gi, "-");
+    const namePart = (medName || stbName || "results").replace(/[^a-z0-9]/gi, "-");
     const datePart = State.compDate || "export";
     this._downloadCSV(`${namePart}-${datePart}.csv`, rows);
   },
