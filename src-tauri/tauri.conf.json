@@ -1,6 +1,6 @@
 {
   "productName": "Fulford Competition Helper",
-  "version": "1.3.16",
+  "version": "1.3.18",
   "identifier": "uk.co.fulfordgolfclub.competitionhelper",
   "build": {
     "beforeDevCommand": "",
