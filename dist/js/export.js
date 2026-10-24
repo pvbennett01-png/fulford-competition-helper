@@ -71,7 +71,15 @@ window.Export = {
       #__print-overlay .section-title { font-family: 'Playfair Display', Georgia, serif;
         font-size: 16px; font-weight: 700; color: #134325; margin: 24px 0 8px;
         padding-bottom: 6px; border-bottom: 2px solid #134325; }
-      #__print-overlay .meta { font-size: 12px; color: #5a6e5c; margin-bottom: 16px; }`;
+      #__print-overlay .meta { font-size: 12px; color: #5a6e5c; margin-bottom: 16px; }
+      #__print-overlay td[contenteditable="true"] { cursor: text; }
+      #__print-overlay td[contenteditable="true"]:hover { background: #f0f9f2 !important; }
+      #__print-overlay td[contenteditable="true"]:focus {
+        outline: 2px solid #134325; outline-offset: -2px;
+        background: #e6f4ea !important; }
+      @media print {
+        #__print-overlay td[contenteditable] { outline: none !important; }
+      }`;
     document.head.appendChild(style);
 
     const overlay = document.createElement("div");
@@ -82,15 +90,24 @@ window.Export = {
     overlay.innerHTML = `
       <div style="max-width:860px;margin:0 auto;padding:28px 36px">
         ${bodyHtml}
-        <div data-noprint style="margin-top:28px;text-align:right;display:flex;justify-content:flex-end;gap:10px">
-          <button id="__pfc-close" style="padding:9px 20px;font-size:13px;font-family:inherit;
-            background:#fff;color:#134325;border:2px solid #134325;border-radius:6px;cursor:pointer;font-weight:600">Close</button>
-          <button onclick="window.print()" style="padding:9px 20px;font-size:13px;font-family:inherit;
-            background:#134325;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600">&#128424; Print / Save PDF</button>
+        <div data-noprint style="margin-top:28px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+          <span style="font-size:11px;color:#5a6e5c;font-style:italic;">&#9998; Click any cell to edit before printing</span>
+          <div style="display:flex;gap:10px">
+            <button id="__pfc-close" style="padding:9px 20px;font-size:13px;font-family:inherit;
+              background:#fff;color:#134325;border:2px solid #134325;border-radius:6px;cursor:pointer;font-weight:600">Close</button>
+            <button onclick="window.print()" style="padding:9px 20px;font-size:13px;font-family:inherit;
+              background:#134325;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600">&#128424; Print / Save PDF</button>
+          </div>
         </div>
       </div>`;
     document.body.appendChild(overlay);
     document.getElementById("__pfc-close").onclick = () => { overlay.remove(); style.remove(); };
+
+    // Make every table cell editable
+    overlay.querySelectorAll("td").forEach(td => {
+      td.contentEditable = "true";
+      td.spellcheck = false;
+    });
   },
 
   // Returns the name to use for Stableford reports
@@ -279,8 +296,30 @@ window.Export = {
   },
 
   printMedalDiv(key, label) {
-    const body = this._header(`Medal — ${label}`, this._medalName())
-      + this._sectionTable(key, label, "Nett", false);
+    const list = State.divisions[key] || [];
+
+    let rows = "";
+    list.forEach((p, i) => {
+      rows += `<tr>
+        <td>${i + 1}</td>
+        <td>${p.name}</td>
+        <td>${p.hcp != null ? p.hcp : ""}</td>
+        <td class="right">${p.score != null ? p.score : ""}</td>
+        <td>${p.status || ""}</td>
+        <td>${p.comment || ""}</td>
+      </tr>`;
+    });
+
+    const table = list.length
+      ? `<table>
+          <thead><tr>
+            <th>Pos</th><th>Name</th><th>Hcp</th><th class="right">Nett</th><th>Status</th><th>Comment</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>`
+      : `<p style="color:#888;font-size:12px;">No data for ${label}.</p>`;
+
+    const body = this._header(`Medal — ${label}`, this._medalName()) + table;
     this._openWindow(`Medal ${label}`, body);
   },
 

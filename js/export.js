@@ -279,8 +279,30 @@ window.Export = {
   },
 
   printMedalDiv(key, label) {
-    const body = this._header(`Medal — ${label}`, this._medalName())
-      + this._sectionTable(key, label, "Nett", false);
+    const list = State.divisions[key] || [];
+
+    let rows = "";
+    list.forEach((p, i) => {
+      rows += `<tr>
+        <td>${i + 1}</td>
+        <td>${p.name}</td>
+        <td>${p.hcp != null ? p.hcp : ""}</td>
+        <td class="right">${p.score != null ? p.score : ""}</td>
+        <td>${p.status || ""}</td>
+        <td>${p.comment || ""}</td>
+      </tr>`;
+    });
+
+    const table = list.length
+      ? `<table>
+          <thead><tr>
+            <th>Pos</th><th>Name</th><th>Hcp</th><th class="right">Nett</th><th>Status</th><th>Comment</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>`
+      : `<p style="color:#888;font-size:12px;">No data for ${label}.</p>`;
+
+    const body = this._header(`Medal — ${label}`, this._medalName()) + table;
     this._openWindow(`Medal ${label}`, body);
   },
 
