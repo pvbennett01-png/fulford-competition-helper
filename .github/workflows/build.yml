@@ -37,6 +37,7 @@ jobs:
           owner: pvbennett01-png
           repo: fulford-competition-helper-releases
           updaterJsonPreferNsis: true
+          releaseCommitish: main
           tagName: ${{ github.ref_name }}
           releaseName: 'Fulford Competition Helper ${{ github.ref_name }}'
           releaseBody: 'Desktop app for Fulford Golf Club competition committee. Windows: download and run the -setup.exe. Mac: download and open the .dmg. Once installed (v1.3.20 or later) the app offers new versions automatically when opened.'
@@ -74,6 +75,7 @@ jobs:
           owner: pvbennett01-png
           repo: fulford-competition-helper-releases
           updaterJsonPreferNsis: true
+          releaseCommitish: main
           tagName: ${{ github.ref_name }}
           releaseName: 'Fulford Competition Helper ${{ github.ref_name }}'
           releaseBody: 'Desktop app for Fulford Golf Club competition committee. Windows: download and run the -setup.exe. Mac: download and open the .dmg. Once installed (v1.3.20 or later) the app offers new versions automatically when opened.'
