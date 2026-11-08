@@ -30,11 +30,13 @@ window.Prizes = {
     const fee  = section === "pairs" ? State.pairsEntryFee
                : section === "scramble" ? State.scrambleEntryFee
                : State.entryFee;
-    const pot  = this.computePrizePot(this.countEntries(section), fee);
+    const size = this._teamSize(section, list);
+    const pot  = this.computePrizePot(this.countEntries(section), fee) / size;
     let prizes = this.buildTaperedPrizes(pot, list.length);
 
     prizes = this.enforceDescending(prizes);
     prizes = this.applyTieHandling(section, list, prizes);
+    prizes = this._scaleToTeams(section, list, prizes);
     prizes = this.applyLockedRows(section, prizes);
 
     // Round all prizes to whole pounds
@@ -51,14 +53,34 @@ window.Prizes = {
     const fee    = section === "pairs" ? State.pairsEntryFee
                  : section === "scramble" ? State.scrambleEntryFee
                  : State.entryFee;
-    const pot    = this.computePrizePot(this.countEntries(section), fee);
+    const size   = this._teamSize(section, list);
+    const pot    = this.computePrizePot(this.countEntries(section), fee) / size;
     const groups = this._buildGroups(list);
     let prizes   = this._secretaryBuild(pot, groups);
 
+    prizes = this._scaleToTeams(section, list, prizes);
     prizes = this.applyLockedRows(section, prizes);
     prizes = prizes.map(p => Math.round(p * 2) / 2);
     State.prizeData[section] = prizes;
     return prizes;
+  },
+
+  // -----------------------------
+  // TEAM COMPETITIONS (Custom Comps e.g. 2 from 4, Texas Scramble)
+  // Max/min prize limits apply PER PLAYER. The prize ladder is built
+  // per player from pot ÷ largest team size, then each team's prize is
+  // per-player share × its own player count (so 3-man teams never
+  // overspend the pot and every player gets an equal share).
+  // -----------------------------
+  _teamSize(section, list) {
+    if (section !== "scramble") return 1;
+    return Math.max(1, ...list.map(t => t.playerCount || 1));
+  },
+
+  _scaleToTeams(section, list, prizes) {
+    if (section !== "scramble") return prizes;
+    // Round each per-player share DOWN to 50p so scaling never overspends the pot
+    return prizes.map((p, i) => (Math.floor(p * 2 + 1e-9) / 2) * (list[i].playerCount || 1));
   },
 
   _buildGroups(list) {
@@ -313,7 +335,9 @@ window.Prizes = {
     const list = State.divisions[section];
     if (!list || list.length === 0) return;
 
-    const prizes = [...(State.prizeData[section] || [])];
+    // Team comps: taper per-player shares (limits are per player), scale back after
+    const counts = list.map(t => section === "scramble" ? (t.playerCount || 1) : 1);
+    const prizes = (State.prizeData[section] || []).map((p, i) => p / counts[i]);
     if (prizes.length === 0) return;
 
     const locks = State.lockedRows[section];
@@ -344,6 +368,8 @@ window.Prizes = {
       if (!locks.has(i) && tapered[i] > tapered[i - 1]) tapered[i] = tapered[i - 1];
     }
 
-    State.prizeData[section] = tapered.map(p => Math.round(p * 2) / 2);
+    State.prizeData[section] = section === "scramble"
+      ? tapered.map((p, i) => locks.has(i) ? p * counts[i] : (Math.floor(p * 2 + 1e-9) / 2) * counts[i])
+      : tapered.map(p => Math.round(p * 2) / 2);
   }
 };
