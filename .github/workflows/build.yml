@@ -26,6 +26,10 @@ jobs:
       - name: Install frontend dependencies
         run: npm install
 
+      - name: Version from tag (app-v1.2.3 -> 1.2.3)
+        shell: bash
+        run: echo "VER=${GITHUB_REF_NAME#app-v}" >> "$GITHUB_ENV"
+
       - name: Build Tauri app (Windows)
         uses: tauri-apps/tauri-action@v0
         env:
@@ -39,8 +43,19 @@ jobs:
           updaterJsonPreferNsis: true
           releaseCommitish: main
           tagName: ${{ github.ref_name }}
-          releaseName: 'Fulford Competition Helper ${{ github.ref_name }}'
-          releaseBody: 'Desktop app for Fulford Golf Club competition committee. Windows: download and run the -setup.exe. Mac: download and open the .dmg. Once installed (v1.3.20 or later) the app offers new versions automatically when opened.'
+          releaseName: 'Fulford Competition Helper ${{ env.VER }}'
+          # Release page shown to the committee - two clear download links (Windows job creates the release)
+          releaseBody: |
+            ## ⬇️ Download Fulford Competition Helper
+
+            ### 🪟 Windows PC → **[Download for Windows](https://github.com/pvbennett01-png/fulford-competition-helper-releases/releases/download/${{ github.ref_name }}/Fulford.Competition.Helper_${{ env.VER }}_x64-setup.exe)**
+            Then open the downloaded file. If Windows shows "Windows protected your PC", click **More info** → **Run anyway**.
+
+            ### 🍎 Mac → **[Download for Mac](https://github.com/pvbennett01-png/fulford-competition-helper-releases/releases/download/${{ github.ref_name }}/Fulford.Competition.Helper_${{ env.VER }}_universal.dmg)**
+            Open the downloaded file and drag the app into **Applications**.
+
+            ---
+            *Once installed, the app checks for new versions itself – just click **Install now** when asked. You can ignore the list of files below; they are used by the automatic updater.*
           releaseDraft: false
           prerelease: false
 
@@ -64,6 +79,10 @@ jobs:
       - name: Install frontend dependencies
         run: npm install
 
+      - name: Version from tag (app-v1.2.3 -> 1.2.3)
+        shell: bash
+        run: echo "VER=${GITHUB_REF_NAME#app-v}" >> "$GITHUB_ENV"
+
       - name: Build Tauri app (macOS universal)
         uses: tauri-apps/tauri-action@v0
         env:
@@ -77,8 +96,19 @@ jobs:
           updaterJsonPreferNsis: true
           releaseCommitish: main
           tagName: ${{ github.ref_name }}
-          releaseName: 'Fulford Competition Helper ${{ github.ref_name }}'
-          releaseBody: 'Desktop app for Fulford Golf Club competition committee. Windows: download and run the -setup.exe. Mac: download and open the .dmg. Once installed (v1.3.20 or later) the app offers new versions automatically when opened.'
+          releaseName: 'Fulford Competition Helper ${{ env.VER }}'
+          # Release page shown to the committee - two clear download links (Windows job creates the release)
+          releaseBody: |
+            ## ⬇️ Download Fulford Competition Helper
+
+            ### 🪟 Windows PC → **[Download for Windows](https://github.com/pvbennett01-png/fulford-competition-helper-releases/releases/download/${{ github.ref_name }}/Fulford.Competition.Helper_${{ env.VER }}_x64-setup.exe)**
+            Then open the downloaded file. If Windows shows "Windows protected your PC", click **More info** → **Run anyway**.
+
+            ### 🍎 Mac → **[Download for Mac](https://github.com/pvbennett01-png/fulford-competition-helper-releases/releases/download/${{ github.ref_name }}/Fulford.Competition.Helper_${{ env.VER }}_universal.dmg)**
+            Open the downloaded file and drag the app into **Applications**.
+
+            ---
+            *Once installed, the app checks for new versions itself – just click **Install now** when asked. You can ignore the list of files below; they are used by the automatic updater.*
           releaseDraft: false
           prerelease: false
           args: --target universal-apple-darwin
