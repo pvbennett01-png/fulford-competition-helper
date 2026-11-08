@@ -29,15 +29,23 @@ jobs:
       - name: Build Tauri app (Windows)
         uses: tauri-apps/tauri-action@v0
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Publishes to the PUBLIC releases repo so the in-app updater (and committee) can download
+          GITHUB_TOKEN: ${{ secrets.RELEASES_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
+          owner: pvbennett01-png
+          repo: fulford-competition-helper-releases
+          updaterJsonPreferNsis: true
           tagName: ${{ github.ref_name }}
           releaseName: 'Fulford Competition Helper ${{ github.ref_name }}'
-          releaseBody: 'Desktop app for Fulford Golf Club competition committee. Windows: run the -setup.exe. Mac: run the .dmg.'
+          releaseBody: 'Desktop app for Fulford Golf Club competition committee. Windows: download and run the -setup.exe. Mac: download and open the .dmg. Once installed (v1.3.20 or later) the app offers new versions automatically when opened.'
           releaseDraft: false
           prerelease: false
 
   build-macos:
+    # Run after Windows so both jobs don't race to create the release / latest.json
+    needs: build-windows
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -58,11 +66,17 @@ jobs:
       - name: Build Tauri app (macOS universal)
         uses: tauri-apps/tauri-action@v0
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Publishes to the PUBLIC releases repo so the in-app updater (and committee) can download
+          GITHUB_TOKEN: ${{ secrets.RELEASES_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
+          owner: pvbennett01-png
+          repo: fulford-competition-helper-releases
+          updaterJsonPreferNsis: true
           tagName: ${{ github.ref_name }}
           releaseName: 'Fulford Competition Helper ${{ github.ref_name }}'
-          releaseBody: 'Desktop app for Fulford Golf Club competition committee. Windows: run the -setup.exe. Mac: run the .dmg.'
+          releaseBody: 'Desktop app for Fulford Golf Club competition committee. Windows: download and run the -setup.exe. Mac: download and open the .dmg. Once installed (v1.3.20 or later) the app offers new versions automatically when opened.'
           releaseDraft: false
           prerelease: false
           args: --target universal-apple-darwin
