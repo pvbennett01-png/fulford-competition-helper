@@ -3,3 +3,6 @@ src-tauri/target/
 FulfordCompetitionHelper_Setup.exe
 FulfordHelper_Setup.iss
 LICENCE.txt
+
+# Local test CSVs (real club results - not for the repo)
+test-data/
